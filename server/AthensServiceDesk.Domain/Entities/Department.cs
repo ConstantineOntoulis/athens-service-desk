@@ -1,8 +1,16 @@
-﻿using System;
+using AthensServiceDesk.Domain.Common;
 
-public class Class1
+namespace AthensServiceDesk.Domain.Entities;
+
+public class Department : BaseEntity
 {
-	public Class1()
-	{
-	}
+    public string Name { get; set; } = string.Empty;
+
+    public string? Description { get; set; }
+
+    public bool IsActive { get; set; } = true;
+
+    public ICollection<ServiceCategory> Categories { get; set; } = new List<ServiceCategory>();
+
+    public ICollection<ServiceRequest> ServiceRequests { get; set; } = new List<ServiceRequest>();
 }

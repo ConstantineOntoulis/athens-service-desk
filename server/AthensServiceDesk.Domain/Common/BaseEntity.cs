@@ -1,8 +1,10 @@
-﻿using System;
+namespace AthensServiceDesk.Domain.Common;
 
-public class Class1
+public abstract class BaseEntity
 {
-	public Class1()
-	{
-	}
+    public int Id { get; set; }
+
+    public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+
+    public DateTimeOffset? UpdatedAt { get; set; }
 }

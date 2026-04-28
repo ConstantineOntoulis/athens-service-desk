@@ -1,8 +1,9 @@
-﻿using System;
+namespace AthensServiceDesk.Domain.Enums;
 
-public class Class1
+public enum ServicePriority
 {
-	public Class1()
-	{
-	}
+    Low = 1,
+    Medium = 2,
+    High = 3,
+    Urgent = 4
 }
