@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="AthensServiceDesk.Api/AthensServiceDesk.Api.csproj" />
+  <Project Path="AthensServiceDesk.Application/AthensServiceDesk.Application.csproj" />
+  <Project Path="AthensServiceDesk.Domain/AthensServiceDesk.Domain.csproj" />
+  <Project Path="AthensServiceDesk.Infrastructure/AthensServiceDesk.Infrastructure.csproj" />
+  <Project Path="AthensServiceDesk.IntegrationTests/AthensServiceDesk.IntegrationTests.csproj" />
+  <Project Path="AthensServiceDesk.Tests/AthensServiceDesk.Tests.csproj" />
+</Solution>
