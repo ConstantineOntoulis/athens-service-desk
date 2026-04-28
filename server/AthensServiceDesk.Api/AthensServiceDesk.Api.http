@@ -1,6 +1,6 @@
 @AthensServiceDesk.Api_HostAddress = http://localhost:5011
 
-GET {{AthensServiceDesk.Api_HostAddress}}/weatherforecast/
+GET {{AthensServiceDesk.Api_HostAddress}}/openapi/v1.json
 Accept: application/json
 
 ###
