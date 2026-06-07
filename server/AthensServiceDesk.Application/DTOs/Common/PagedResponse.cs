@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace AthensServiceDesk.Application.DTOs.Common;
+﻿namespace AthensServiceDesk.Application.DTOs.Common;
 
 public class PagedResponse<T>
 {
