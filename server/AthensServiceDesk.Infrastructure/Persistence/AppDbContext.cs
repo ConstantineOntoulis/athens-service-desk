@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AthensServiceDesk.Domain.Entities;
+﻿using AthensServiceDesk.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace AthensServiceDesk.Infrastructure.Persistence

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using AthensServiceDesk.Domain.Entities;
+﻿using AthensServiceDesk.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,6 +8,8 @@ namespace AthensServiceDesk.Infrastructure.Persistence.Configurations
     {
         public void Configure(EntityTypeBuilder<ServiceCategory> builder)
         {
+            var seedCreatedAt = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
             builder.ToTable("ServiceCategories");
 
             builder.HasKey(category => category.Id);
@@ -40,7 +39,8 @@ namespace AthensServiceDesk.Infrastructure.Persistence.Configurations
                     Name = "General Complaint",
                     Description = "General service complaints or non-specialized requests.",
                     DepartmentId = 1,
-                    IsActive = true
+                    IsActive = true,
+                    CreatedAt = seedCreatedAt
                 },
                 new ServiceCategory
                 {
@@ -48,7 +48,8 @@ namespace AthensServiceDesk.Infrastructure.Persistence.Configurations
                     Name = "Appointment Request",
                     Description = "Requests that require an appointment with a service department.",
                     DepartmentId = 1,
-                    IsActive = true
+                    IsActive = true,
+                    CreatedAt = seedCreatedAt
                 },
                 new ServiceCategory
                 {
@@ -56,7 +57,8 @@ namespace AthensServiceDesk.Infrastructure.Persistence.Configurations
                     Name = "Streetlight Issue",
                     Description = "Reports about broken, flickering, or missing street lighting.",
                     DepartmentId = 2,
-                    IsActive = true
+                    IsActive = true,
+                    CreatedAt = seedCreatedAt
                 },
                 new ServiceCategory
                 {
@@ -64,7 +66,8 @@ namespace AthensServiceDesk.Infrastructure.Persistence.Configurations
                     Name = "Road Damage",
                     Description = "Reports about potholes, damaged roads, or pavement issues.",
                     DepartmentId = 2,
-                    IsActive = true
+                    IsActive = true,
+                    CreatedAt = seedCreatedAt
                 },
                 new ServiceCategory
                 {
@@ -72,7 +75,8 @@ namespace AthensServiceDesk.Infrastructure.Persistence.Configurations
                     Name = "Document Support",
                     Description = "Requests related to documents, certificates, or administrative support.",
                     DepartmentId = 4,
-                    IsActive = true
+                    IsActive = true,
+                    CreatedAt = seedCreatedAt
                 }
             );
         }
