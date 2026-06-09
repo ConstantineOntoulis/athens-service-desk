@@ -1,4 +1,6 @@
-﻿using AthensServiceDesk.Infrastructure.Persistence;
+﻿using AthensServiceDesk.Application.Interfaces.Persistence;
+using AthensServiceDesk.Infrastructure.Persistence;
+using AthensServiceDesk.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,10 +13,15 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        string connectionString = configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("DefaultConnection was not found.");
+        string connectionString = configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("DefaultConnection was not found.");
 
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(connectionString));
+
+        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
+        services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
+        services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
 
         return services;
     }
