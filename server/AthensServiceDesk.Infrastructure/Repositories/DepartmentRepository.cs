@@ -13,7 +13,7 @@ public class DepartmentRepository : IDepartmentRepository
     {
         _dbContext = dbContext;
     }
-
+    
     public async Task<bool> ExistsAsync(
         int id,
         CancellationToken cancellationToken = default)
