@@ -75,11 +75,6 @@ public class ServiceRequestRepository : IServiceRequestRepository
         await _dbContext.ServiceRequests.AddAsync(serviceRequest, cancellationToken);
     }
 
-    public async Task SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        await _dbContext.SaveChangesAsync(cancellationToken);
-    }
-
     private static IQueryable<ServiceRequest> ApplyFilters(
         IQueryable<ServiceRequest> requests,
         ServiceRequestQuery query)

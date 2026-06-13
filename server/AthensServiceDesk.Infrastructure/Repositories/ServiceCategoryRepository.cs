@@ -36,22 +36,6 @@ public class ServiceCategoryRepository : IServiceCategoryRepository
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<bool> BelongsToDepartmentAsync(
-        int categoryId,
-        int departmentId,
-        CancellationToken cancellationToken = default)
-    {
-        return await _dbContext.ServiceCategories
-            .AsNoTracking()
-            .AnyAsync(
-                category =>
-                    category.Id == categoryId
-                    && category.DepartmentId == departmentId
-                    && category.IsActive
-                    && category.Department.IsActive,
-                cancellationToken);
-    }
-
     public async Task<IReadOnlyList<ServiceCategory>> GetActiveByDepartmentIdAsync(
         int departmentId,
         CancellationToken cancellationToken = default)

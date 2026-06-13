@@ -24,6 +24,5 @@ public interface IServiceRequestRepository
     Task AddAsync(
         ServiceRequest serviceRequest,
         CancellationToken cancellationToken = default);
-
-    Task SaveChangesAsync(CancellationToken cancellationToken = default);
+    
 }

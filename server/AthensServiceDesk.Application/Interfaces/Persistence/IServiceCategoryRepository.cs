@@ -8,11 +8,6 @@ public interface IServiceCategoryRepository
 
     Task<int?> GetDepartmentIdAsync(int categoryId, CancellationToken cancellationToken = default);
 
-    Task<bool> BelongsToDepartmentAsync(
-        int categoryId,
-        int departmentId,
-        CancellationToken cancellationToken = default);
-
     Task<IReadOnlyList<ServiceCategory>> GetActiveByDepartmentIdAsync(
         int departmentId,
         CancellationToken cancellationToken = default);
