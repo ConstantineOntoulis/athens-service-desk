@@ -1,6 +1,85 @@
-@AthensServiceDesk.Api_HostAddress = http://localhost:5011
+@host = http://localhost:5011
+@requestId = 1
 
-GET {{AthensServiceDesk.Api_HostAddress}}/openapi/v1.json
+### List service requests
+
+GET {{host}}/api/service-requests
 Accept: application/json
 
-###
+
+### List with pagination and filtering
+
+GET {{host}}/api/service-requests?page=1&pageSize=10&status=Submitted&sortBy=createdAt&sortDirection=desc
+Accept: application/json
+
+
+### Create a valid service request
+
+POST {{host}}/api/service-requests
+Content-Type: application/json
+
+{
+  "title": "Broken streetlight near Syntagma Square",
+  "description": "The streetlight has not worked for several nights and the surrounding area is very dark.",
+  "location": "Syntagma Square, Athens",
+  "departmentId": 2,
+  "serviceCategoryId": 3,
+  "priority": 3
+}
+
+
+### Get a service request by id
+
+GET {{host}}/api/service-requests/{{requestId}}
+Accept: application/json
+
+
+### Update an editable service request
+
+PUT {{host}}/api/service-requests/{{requestId}}
+Content-Type: application/json
+
+{
+  "title": "Broken streetlight near central Syntagma Square",
+  "description": "The streetlight remains broken and the surrounding pedestrian area has insufficient lighting.",
+  "location": "Central Syntagma Square, Athens",
+  "departmentId": 2,
+  "serviceCategoryId": 3,
+  "priority": 4
+}
+
+
+### Get a request that does not exist
+
+GET {{host}}/api/service-requests/999999
+Accept: application/json
+
+
+### Create an invalid request
+
+POST {{host}}/api/service-requests
+Content-Type: application/json
+
+{
+  "title": "Bad",
+  "description": "Too short",
+  "location": "",
+  "departmentId": 0,
+  "serviceCategoryId": 0,
+  "priority": 2
+}
+
+
+### Create with a mismatched department and category
+
+POST {{host}}/api/service-requests
+Content-Type: application/json
+
+{
+  "title": "Mismatched department and service category",
+  "description": "This request intentionally uses a category that does not belong to the selected department.",
+  "location": "Athens",
+  "departmentId": 1,
+  "serviceCategoryId": 3,
+  "priority": 2
+}
