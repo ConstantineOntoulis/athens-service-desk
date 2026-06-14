@@ -186,6 +186,8 @@ public sealed class ServiceRequestsEndpointTests
             "Business rule violation",
             problem.Title);
 
+        Assert.NotNull(problem.Detail);
+
         Assert.Contains(
             "does not belong",
             problem.Detail);
