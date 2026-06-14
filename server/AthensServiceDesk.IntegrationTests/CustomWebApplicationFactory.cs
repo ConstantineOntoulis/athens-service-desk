@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -21,7 +22,12 @@ public sealed class CustomWebApplicationFactory
 
         builder.ConfigureServices(services =>
         {
-            services.RemoveAll<DbContextOptions<AppDbContext>>();
+            services.RemoveAll<
+                DbContextOptions<AppDbContext>>();
+
+            services.RemoveAll<
+                IDbContextOptionsConfiguration<AppDbContext>>();
+
             services.RemoveAll<AppDbContext>();
 
             _connection = new SqliteConnection(
@@ -53,11 +59,11 @@ public sealed class CustomWebApplicationFactory
 
     protected override void Dispose(bool disposing)
     {
-        base.Dispose(disposing);
-
         if (disposing)
         {
             _connection?.Dispose();
         }
+
+        base.Dispose(disposing);
     }
 }
