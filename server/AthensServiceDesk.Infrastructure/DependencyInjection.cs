@@ -13,15 +13,28 @@ public static class DependencyInjection
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        string connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("DefaultConnection was not found.");
-
         services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlServer(connectionString));
+        {
+            string connectionString =
+                configuration.GetConnectionString("DefaultConnection")
+                ?? throw new InvalidOperationException(
+                    "DefaultConnection was not found.");
 
-        services.AddScoped<IDepartmentRepository, DepartmentRepository>();
-        services.AddScoped<IServiceCategoryRepository, ServiceCategoryRepository>();
-        services.AddScoped<IServiceRequestRepository, ServiceRequestRepository>();
+            options.UseSqlServer(connectionString);
+        });
+
+        services.AddScoped<
+            IDepartmentRepository,
+            DepartmentRepository>();
+
+        services.AddScoped<
+            IServiceCategoryRepository,
+            ServiceCategoryRepository>();
+
+        services.AddScoped<
+            IServiceRequestRepository,
+            ServiceRequestRepository>();
+
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
         return services;
