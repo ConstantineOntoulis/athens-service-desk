@@ -229,8 +229,7 @@ public sealed class ServiceRequestService : IServiceRequestService
     {
         if (id < 1)
         {
-            throw new ArgumentOutOfRangeException(
-                nameof(id),
+            throw new BusinessRuleException(
                 "The service request identifier must be greater than zero.");
         }
     }
