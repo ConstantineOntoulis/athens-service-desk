@@ -8,15 +8,17 @@ public class ServiceRequestRulesTests
     [Theory]
     [InlineData(ServiceRequestStatus.Submitted, true)]
     [InlineData(ServiceRequestStatus.UnderReview, true)]
-    [InlineData(ServiceRequestStatus.Assigned, true)]
-    [InlineData(ServiceRequestStatus.Scheduled, true)]
-    [InlineData(ServiceRequestStatus.InProgress, true)]
-    [InlineData(ServiceRequestStatus.Resolved, true)]
     [InlineData(ServiceRequestStatus.Reopened, true)]
+    [InlineData(ServiceRequestStatus.Assigned, false)]
+    [InlineData(ServiceRequestStatus.Scheduled, false)]
+    [InlineData(ServiceRequestStatus.InProgress, false)]
+    [InlineData(ServiceRequestStatus.Resolved, false)]
     [InlineData(ServiceRequestStatus.Closed, false)]
     [InlineData(ServiceRequestStatus.Cancelled, false)]
     [InlineData(ServiceRequestStatus.Rejected, false)]
-    public void CanEdit_ShouldReturnExpectedResult(ServiceRequestStatus status, bool expected)
+    public void CanEdit_ShouldReturnExpectedResult(
+        ServiceRequestStatus status,
+        bool expected)
     {
         bool result = ServiceRequestRules.CanEdit(status);
 

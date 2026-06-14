@@ -6,9 +6,9 @@ public static class ServiceRequestRules
 {
     public static bool CanEdit(ServiceRequestStatus status)
     {
-        return status is not ServiceRequestStatus.Closed
-            and not ServiceRequestStatus.Cancelled
-            and not ServiceRequestStatus.Rejected;
+        return status is ServiceRequestStatus.Submitted
+            or ServiceRequestStatus.UnderReview
+            or ServiceRequestStatus.Reopened;
     }
 
     public static bool CanCancel(ServiceRequestStatus status)
