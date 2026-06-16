@@ -9,7 +9,13 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(
         this IServiceCollection services)
     {
-        services.AddScoped<IServiceRequestService, ServiceRequestService>();
+        services.AddScoped<
+            IServiceRequestService,
+            ServiceRequestService>();
+
+        services.AddScoped<
+            IServiceCatalogService,
+            ServiceCatalogService>();
 
         return services;
     }

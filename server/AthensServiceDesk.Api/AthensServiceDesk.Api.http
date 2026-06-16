@@ -83,3 +83,18 @@ Content-Type: application/json
   "serviceCategoryId": 3,
   "priority": 2
 }
+
+GET {{host}}/api/departments
+Accept: application/json
+
+
+### Get active service categories for Infrastructure
+
+GET {{host}}/api/departments/2/service-categories
+Accept: application/json
+
+
+### Get categories for a missing department
+
+GET {{host}}/api/departments/999999/service-categories
+Accept: application/json
