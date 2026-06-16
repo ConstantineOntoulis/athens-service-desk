@@ -1,6 +1,5 @@
 ﻿using AthensServiceDesk.Application.DTOs.Lookups;
 using AthensServiceDesk.Application.Interfaces.Services;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AthensServiceDesk.Api.Controllers;
