@@ -1,37 +1,50 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="coverlet.collector" Version="10.0.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.8" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
-    <PackageReference Include="xunit" Version="2.9.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="coverlet.collector" Version="10.0.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>
+				runtime; build; native; contentfiles; analyzers; buildtransitive
+			</IncludeAssets>
+		</PackageReference>
 
-  <ItemGroup>
-    <Using Include="Xunit" />
-  </ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing"
+						  Version="10.0.8" />
 
-  <ItemGroup>
-    <ProjectReference Include="..\AthensServiceDesk.Api\AthensServiceDesk.Api.csproj" />
-    <ProjectReference Include="..\AthensServiceDesk.Application\AthensServiceDesk.Application.csproj" />
-    <ProjectReference Include="..\AthensServiceDesk.Domain\AthensServiceDesk.Domain.csproj" />
-    <ProjectReference Include="..\AthensServiceDesk.Infrastructure\AthensServiceDesk.Infrastructure.csproj" />
-  </ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite"
+						  Version="10.0.8" />
+
+		<PackageReference Include="Microsoft.NET.Test.Sdk"
+						  Version="18.6.0" />
+
+		<PackageReference Include="xunit"
+						  Version="2.9.3" />
+
+		<PackageReference Include="xunit.runner.visualstudio"
+						  Version="3.1.5">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>
+				runtime; build; native; contentfiles; analyzers; buildtransitive
+			</IncludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\AthensServiceDesk.Api\AthensServiceDesk.Api.csproj" />
+		<ProjectReference Include="..\AthensServiceDesk.Application\AthensServiceDesk.Application.csproj" />
+		<ProjectReference Include="..\AthensServiceDesk.Domain\AthensServiceDesk.Domain.csproj" />
+		<ProjectReference Include="..\AthensServiceDesk.Infrastructure\AthensServiceDesk.Infrastructure.csproj" />
+	</ItemGroup>
 
 </Project>
