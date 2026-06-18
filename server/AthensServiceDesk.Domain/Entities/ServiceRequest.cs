@@ -11,9 +11,11 @@ public class ServiceRequest : BaseEntity
 
     public string Location { get; set; } = string.Empty;
 
-    public ServiceRequestStatus Status { get; set; } = ServiceRequestStatus.Submitted;
+    public ServiceRequestStatus Status { get; set; } =
+        ServiceRequestStatus.Submitted;
 
-    public ServicePriority Priority { get; set; } = ServicePriority.Medium;
+    public ServicePriority Priority { get; set; } =
+        ServicePriority.Medium;
 
     public int DepartmentId { get; set; }
 
@@ -25,7 +27,11 @@ public class ServiceRequest : BaseEntity
 
     public int? CreatedByUserId { get; set; }
 
+    public AppUser? CreatedByUser { get; set; }
+
     public int? AssignedToUserId { get; set; }
+
+    public AppUser? AssignedToUser { get; set; }
 
     public DateTimeOffset? AssignedAt { get; set; }
 

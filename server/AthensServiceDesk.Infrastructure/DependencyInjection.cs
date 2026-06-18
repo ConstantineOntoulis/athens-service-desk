@@ -16,7 +16,8 @@ public static class DependencyInjection
         services.AddDbContext<AppDbContext>(options =>
         {
             string connectionString =
-                configuration.GetConnectionString("DefaultConnection")
+                configuration.GetConnectionString(
+                    "DefaultConnection")
                 ?? throw new InvalidOperationException(
                     "DefaultConnection was not found.");
 
@@ -34,6 +35,10 @@ public static class DependencyInjection
         services.AddScoped<
             IServiceRequestRepository,
             ServiceRequestRepository>();
+
+        services.AddScoped<
+            IUserRepository,
+            UserRepository>();
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
