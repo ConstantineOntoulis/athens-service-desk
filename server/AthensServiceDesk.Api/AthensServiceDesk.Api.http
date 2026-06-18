@@ -6,12 +6,10 @@
 GET {{host}}/api/service-requests
 Accept: application/json
 
-
 ### List with pagination and filtering
 
 GET {{host}}/api/service-requests?page=1&pageSize=10&status=Submitted&sortBy=createdAt&sortDirection=desc
 Accept: application/json
-
 
 ### Create a valid service request
 
@@ -27,12 +25,10 @@ Content-Type: application/json
   "priority": 3
 }
 
-
 ### Get a service request by id
 
 GET {{host}}/api/service-requests/{{requestId}}
 Accept: application/json
-
 
 ### Update an editable service request
 
@@ -48,12 +44,10 @@ Content-Type: application/json
   "priority": 4
 }
 
-
 ### Get a request that does not exist
 
 GET {{host}}/api/service-requests/999999
 Accept: application/json
-
 
 ### Create an invalid request
 
@@ -69,7 +63,6 @@ Content-Type: application/json
   "priority": 2
 }
 
-
 ### Create with a mismatched department and category
 
 POST {{host}}/api/service-requests
@@ -84,15 +77,15 @@ Content-Type: application/json
   "priority": 2
 }
 
+### Get active departments
+
 GET {{host}}/api/departments
 Accept: application/json
-
 
 ### Get active service categories for Infrastructure
 
 GET {{host}}/api/departments/2/service-categories
 Accept: application/json
-
 
 ### Get categories for a missing department
 
