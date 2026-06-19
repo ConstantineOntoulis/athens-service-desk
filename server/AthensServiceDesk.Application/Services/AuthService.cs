@@ -27,7 +27,7 @@ public sealed class AuthService : IAuthService
         LoginRequest request,
         CancellationToken cancellationToken = default)
     {
-        ArgumentException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request);
 
         string normalizedEmail =
             request.Email
