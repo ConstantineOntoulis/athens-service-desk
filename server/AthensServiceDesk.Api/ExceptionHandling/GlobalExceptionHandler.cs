@@ -16,6 +16,13 @@ public sealed class GlobalExceptionHandler(
         (int statusCode, string title, string detail) =
             exception switch
             {
+                InvalidCredentialsException =>
+                (
+                  StatusCodes.Status401Unauthorized,
+                  "Authentication failed",
+                  exception.Message
+                ),
+
                 NotFoundException =>
                 (
                     StatusCodes.Status404NotFound,
@@ -44,6 +51,11 @@ public sealed class GlobalExceptionHandler(
                     "An unexpected error occurred while processing the request."
                 )
             };
+
+        if (exception is InvalidCredentialsException)
+        {
+            httpContext.Response.Headers.WWWAuthenticate = "Bearer";
+        }
 
         if (statusCode >= StatusCodes.Status500InternalServerError)
         {

@@ -3,7 +3,7 @@
 public enum UserRole
 {
     Citizen = 1,
-    Stagg = 2,
+    Staff = 2,
     Manager = 3,
     Admin = 4
 }

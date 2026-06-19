@@ -8,7 +8,7 @@ public interface IUserRepository
         string normalizedEmail,
         CancellationToken cancellationToken = default);
 
-    Task<AppUser> GetByIdAsync(
+    Task<AppUser?> GetByIdAsync(
         int id,
         CancellationToken cancellationToken= default);
 }

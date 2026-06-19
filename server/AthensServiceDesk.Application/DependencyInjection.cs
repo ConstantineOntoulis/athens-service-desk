@@ -17,6 +17,10 @@ public static class DependencyInjection
             IServiceCatalogService,
             ServiceCatalogService>();
 
+        services.AddScoped<
+            IAuthService,
+            AuthService>();
+
         return services;
     }
 }
