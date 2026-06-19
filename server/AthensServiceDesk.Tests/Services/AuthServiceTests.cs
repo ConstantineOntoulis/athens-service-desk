@@ -5,7 +5,7 @@ using AthensServiceDesk.Application.Interfaces.Security;
 using AthensServiceDesk.Application.Services;
 using AthensServiceDesk.Domain.Entities;
 using AthensServiceDesk.Domain.Enums;
-using System.Security.Authentication;
+using AthensServiceDesk.Application.Common.Exceptions;
 
 namespace AthensServiceDesk.Tests.Services
 {
@@ -72,7 +72,7 @@ namespace AthensServiceDesk.Tests.Services
 
             //Act and assert
             await Assert.ThrowsAsync<
-                InvalidCredentialException>(
+                InvalidCredentialsException>(
                     () => _service.LoginAsync(request));
 
             Assert.Equal(0, _jwtTokenService.CreateCallCount);
@@ -93,7 +93,7 @@ namespace AthensServiceDesk.Tests.Services
 
             //Act and assert
             await Assert.ThrowsAsync<
-                InvalidCredentialException>(
+                InvalidCredentialsException>(
                 () => _service.LoginAsync(request));
 
             Assert.Equal(0, _jwtTokenService.CreateCallCount);

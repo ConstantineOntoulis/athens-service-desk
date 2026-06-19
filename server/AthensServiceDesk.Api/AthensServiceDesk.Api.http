@@ -91,3 +91,35 @@ Accept: application/json
 
 GET {{host}}/api/departments/999999/service-categories
 Accept: application/json
+
+### Login as citizen
+
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "citizen@athensdesk.local",
+  "password": "AthensDemo!2026"
+}
+
+
+### Login with incorrect password
+
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "citizen@athensdesk.local",
+  "password": "IncorrectPassword!"
+}
+
+
+### Login with invalid DTO values
+
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "not-an-email",
+  "password": "short"
+}

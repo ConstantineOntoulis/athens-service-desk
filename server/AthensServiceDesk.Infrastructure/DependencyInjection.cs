@@ -32,7 +32,7 @@ public static class DependencyInjection
             configuration.GetSection(JwtOptions.SectionName))
             .Validate(options => !string.IsNullOrWhiteSpace(options.Issuer), "Jwt:Issuer is required.")
             .Validate(options => !string.IsNullOrWhiteSpace(options.Audience), "Jwt:Audience is required.")
-            .Validate(options => !string.IsNullOrWhiteSpace(options.ClientId), "Jwt:CliendId is required.")
+            .Validate(options => !string.IsNullOrWhiteSpace(options.ClientId), "Jwt:ClientId is required.")
             .Validate(options => Encoding.UTF8.GetByteCount(options.Key) >= 32, "Jwt: Key must contain at least 32 bytes.")
             .Validate(options => options.AccessTokenMinutes is >= 5 and <= 1440, "Jwt:AccessTokenMinutes must be between 5 and 1440.")
             .ValidateOnStart();

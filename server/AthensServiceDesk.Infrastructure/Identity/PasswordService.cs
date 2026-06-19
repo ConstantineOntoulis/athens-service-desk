@@ -12,7 +12,7 @@ public sealed class PasswordService : IPasswordService
         AppUser user,
         string password)
     {
-        ArgumentException.ThrowIfNull(user);
+        ArgumentNullException.ThrowIfNull(user);
         ArgumentException.ThrowIfNullOrWhiteSpace(password);
 
         return _passwordHasher.HashPassword(user, password);

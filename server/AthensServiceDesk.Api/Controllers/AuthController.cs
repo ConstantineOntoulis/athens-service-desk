@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AthensServiceDesk.Api.Controllers;
 
+[ApiController]
+[Route("api/auth")]
 public sealed class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
@@ -16,12 +18,6 @@ public sealed class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
-    [ProducesResponseType<LoginResponse>(
-        StatusCodes.Status200OK)]
-    [ProducesResponseType(
-        StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(
-        StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<LoginResponse>> Login(
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken)
