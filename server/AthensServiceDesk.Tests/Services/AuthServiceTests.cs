@@ -33,7 +33,7 @@ namespace AthensServiceDesk.Tests.Services
 
             var request = new LoginRequest
             {
-                Email = "Citizen@AthensDeks.Local",
+                Email = "Citizen@AthensDesk.Local",
                 Password = "CorrectPassword!"
             };
 
