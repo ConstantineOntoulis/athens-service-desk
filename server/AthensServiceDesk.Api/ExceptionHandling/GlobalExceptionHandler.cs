@@ -23,6 +23,13 @@ public sealed class GlobalExceptionHandler(
                   exception.Message
                 ),
 
+                UnauthenticatedException =>
+                (
+                    StatusCodes.Status401Unauthorized,
+                    "Authentication required",
+                    exception.Message
+                ),
+
                 NotFoundException =>
                 (
                     StatusCodes.Status404NotFound,
@@ -52,7 +59,7 @@ public sealed class GlobalExceptionHandler(
                 )
             };
 
-        if (exception is InvalidCredentialsException)
+        if (statusCode == StatusCodes.Status401Unauthorized)
         {
             httpContext.Response.Headers.WWWAuthenticate = "Bearer";
         }

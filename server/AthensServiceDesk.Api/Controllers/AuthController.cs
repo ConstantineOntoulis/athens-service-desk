@@ -18,6 +18,12 @@ public sealed class AuthController : ControllerBase
 
     [AllowAnonymous]
     [HttpPost("login")]
+    [ProducesResponseType<LoginResponse>(
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<LoginResponse>> Login(
         [FromBody] LoginRequest request,
         CancellationToken cancellationToken)
@@ -26,6 +32,21 @@ public sealed class AuthController : ControllerBase
             await _authService.LoginAsync(
                 request,
                 cancellationToken);
+
+        return Ok(response);
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    [ProducesResponseType<AuthenticatedUserResponse>(
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized)]
+    public async Task<
+        ActionResult<AuthenticatedUserResponse>> GetCurrentUser(
+        CancellationToken cancellationToken)
+    {
+        AuthenticatedUserResponse response = await _authService.GetCurrentUserAsync(cancellationToken);
 
         return Ok(response);
     }
