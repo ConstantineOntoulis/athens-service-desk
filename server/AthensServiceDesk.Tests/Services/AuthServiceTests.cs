@@ -14,6 +14,7 @@ namespace AthensServiceDesk.Tests.Services
         private readonly FakeUserRepository _userRepository = new();
         private readonly FakePasswordService _passwordService = new();
         private readonly FakeJwtTokenService _jwtTokenService = new();
+        private readonly FakeCurrentUserService _currentUserService = new();
         private readonly AuthService _service;
 
         public AuthServiceTests()
@@ -21,7 +22,8 @@ namespace AthensServiceDesk.Tests.Services
             _service = new AuthService(
                 _userRepository,
                 _passwordService,
-                _jwtTokenService);
+                _jwtTokenService,
+                _currentUserService);
         }
 
         [Fact]
@@ -99,6 +101,51 @@ namespace AthensServiceDesk.Tests.Services
             Assert.Equal(0, _jwtTokenService.CreateCallCount);
         }
 
+        [Fact]
+        public async Task GetCurrentUserAsync_ShouldReturnCurrentActiveUser()
+        {
+            _currentUserService.IsAuthenticated = true;
+            _currentUserService.UserId = 1;
+
+            _userRepository.IdLookupResult = CreateUser();
+
+            AuthenticatedUserResponse result = await _service.GetCurrentUserAsync();
+
+            Assert.Equal(1, result.Id);
+
+            Assert.Equal("Demo", result.FirstName);
+            Assert.Equal("Citizen", result.LastName);
+            Assert.Equal("Citizen", result.Role);
+
+            Assert.Equal(1, _userRepository.GetByIdCallCount);
+        }
+
+        [Fact]
+        public async Task GetCurrentUserAsync_ShouldThrow_WhenIdentityIsNotAuthenticated()
+        {
+            _currentUserService.IsAuthenticated = false;
+            _currentUserService.UserId = null;
+
+            await Assert.ThrowsAsync<
+                UnauthenticatedException>(
+                () => _service.GetCurrentUserAsync());
+
+            Assert.Equal(0, _userRepository.GetByIdCallCount);
+        }
+
+        [Fact]
+        public async Task GetCurrentUserAsync_ShouldThrow_WhenUserNoLongerExists()
+        {
+            _currentUserService.IsAuthenticated = true;
+            _currentUserService.UserId = 99;
+
+            _userRepository.IdLookupResult = null;
+
+            await Assert.ThrowsAsync<
+                UnauthenticatedException>(() => _service.GetCurrentUserAsync());
+
+            Assert.Equal(1, _userRepository.GetByIdCallCount);
+        }
         private static AppUser CreateUser()
         {
             return new AppUser
@@ -116,12 +163,15 @@ namespace AthensServiceDesk.Tests.Services
 
         private sealed class FakeUserRepository : IUserRepository
         {
-            public AppUser? UserResult { get; set; }
+            public AppUser? EmailLookupResult { get; set; }
+            public AppUser? IdLookupResult { get; set; }
             public string? LastNormalizedEmail
             {
                 get;
                 private set;
             }
+
+            public int GetByIdCallCount { get; private set; }
 
             public Task<AppUser?>
                 GetByNormalizedEmailAsync(
@@ -130,14 +180,16 @@ namespace AthensServiceDesk.Tests.Services
             {
                 LastNormalizedEmail = normalizedEmail;
 
-                return Task.FromResult(UserResult);
+                return Task.FromResult(EmailLookupResult);
             }
 
             public Task<AppUser?> GetByIdAsync(
                 int id,
                 CancellationToken cancellationToken = default)
             {
-                return Task.FromResult(UserResult);
+                GetByIdCallCount++;
+
+                return Task.FromResult(IdLookupResult);
             }
         }
 
@@ -180,6 +232,16 @@ namespace AthensServiceDesk.Tests.Services
                         0,
                         TimeSpan.Zero));
             }
+        }
+
+        private sealed class FakeCurrentUserService : ICurrentUserService
+        {
+            public bool IsAuthenticated { get; set }
+            public int? UserId { get; set; }
+            public string? Email { get; set; }
+            public string? FirstName { get; set; }
+            public string? LastName { get; set; }
+            public UserRole? Role { get; set; }
         }
     }
 }

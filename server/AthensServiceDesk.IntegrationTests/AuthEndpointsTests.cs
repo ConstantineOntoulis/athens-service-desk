@@ -1,7 +1,8 @@
-﻿using AthensServiceDesk.Application.DTOs.Auth;
-using Microsoft.AspNetCore.Mvc;
-using System.Net;
+﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using AthensServiceDesk.Application.DTOs.Auth;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AthensServiceDesk.IntegrationTests;
 
@@ -19,25 +20,10 @@ public sealed class AuthEndpointsTests : IDisposable
     [Fact]
     public async Task Login_ShouldReturnToken_WhenCredentialsAreValid()
     {
-        //Arrange
-        var request = new LoginRequest
-        {
-            Email = "citizen@athensdesk.local",
-            Password = CustomWebApplicationFactory.DemoPassword
-        };
-
-        //Act
-        HttpResponseMessage response = await _client.PostAsJsonAsync("/api/auth/login", request);
-
-        //Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-        LoginResponse body = await response.Content.ReadFromJsonAsync<LoginResponse>() ?? throw new InvalidOperationException("The login response body was empty.");
+        LoginResponse body = await LoginAsCitizenAsync();
 
         Assert.False(string.IsNullOrWhiteSpace(body.AccessToken));
-
         Assert.Equal(2, body.AccessToken.Count(character => character == '.'));
-
         Assert.Equal("Bearer", body.TokenType);
         Assert.Equal("citizen@athensdesk.local", body.User.Email);
         Assert.Equal("Citizen", body.User.Role);
@@ -47,21 +33,22 @@ public sealed class AuthEndpointsTests : IDisposable
     [Fact]
     public async Task Login_ShouldReturnUnauthorized_WhenPasswordIsIncorrect()
     {
-        //Arrange
         var request = new LoginRequest
         {
             Email = "citizen@athensdesk.local",
             Password = "IncorrectPassword!"
         };
 
-        //Act
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/login", request);
+            "/api/auth/login",
+            request);
 
-        //Assert
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
 
-        ProblemDetails problem = await response.Content.ReadFromJsonAsync<ProblemDetails>() ?? throw new InvalidOperationException("The problem response body was empty.");
+        ProblemDetails problem =
+            await response.Content.ReadFromJsonAsync<ProblemDetails>()
+            ?? throw new InvalidOperationException(
+                "The problem response body was empty.");
 
         Assert.Equal(401, problem.Status);
         Assert.Equal("Authentication failed", problem.Title);
@@ -70,20 +57,79 @@ public sealed class AuthEndpointsTests : IDisposable
     [Fact]
     public async Task Login_ShouldReturnBadRequest_WhenDtoIsInvalid()
     {
-        //Arrange
         var invalidRequest = new
         {
             email = "not-an-email",
             password = "short"
         };
 
-        //Act
         HttpResponseMessage response = await _client.PostAsJsonAsync(
-            "/api/auth/login", invalidRequest);
+            "/api/auth/login",
+            invalidRequest);
 
-        //Assert
-        Assert.Equal(
-            HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Me_ShouldReturnCurrentUser_WhenBearerTokenIsValid()
+    {
+        LoginResponse login = await LoginAsCitizenAsync();
+
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", login.AccessToken);
+
+        HttpResponseMessage response = await _client.GetAsync("/api/auth/me");
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        AuthenticatedUserResponse body =
+            await response.Content.ReadFromJsonAsync<AuthenticatedUserResponse>()
+            ?? throw new InvalidOperationException(
+                "The current-user response body was empty.");
+
+        Assert.Equal(login.User.Id, body.Id);
+        Assert.Equal(login.User.Email, body.Email);
+        Assert.Equal("Demo", body.FirstName);
+        Assert.Equal("Citizen", body.LastName);
+        Assert.Equal("Citizen", body.Role);
+    }
+
+    [Fact]
+    public async Task Me_ShouldReturnUnauthorized_WhenTokenIsMissing()
+    {
+        HttpResponseMessage response = await _client.GetAsync("/api/auth/me");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Me_ShouldReturnUnauthorized_WhenTokenIsInvalid()
+    {
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", "not-a-valid-token");
+
+        HttpResponseMessage response = await _client.GetAsync("/api/auth/me");
+
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+    }
+
+    private async Task<LoginResponse> LoginAsCitizenAsync()
+    {
+        var request = new LoginRequest
+        {
+            Email = "citizen@athensdesk.local",
+            Password = CustomWebApplicationFactory.DemoPassword
+        };
+
+        HttpResponseMessage response = await _client.PostAsJsonAsync(
+            "/api/auth/login",
+            request);
+
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        return await response.Content.ReadFromJsonAsync<LoginResponse>()
+            ?? throw new InvalidOperationException(
+                "The login response body was empty.");
     }
 
     public void Dispose()

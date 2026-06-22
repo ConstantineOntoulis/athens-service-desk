@@ -28,7 +28,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             var settings = new Dictionary<string, string?>
             {
                 ["Jwt:Issuer"] = "AthensServiceDesk.Tests",
-                ["Jwt:Audience"] = "AthensServiceDesk.TeskClient",
+                ["Jwt:Audience"] = "AthensServiceDesk.TestClient",
                 ["Jwt:ClientId"] = "athens-service-desk-tests",
                 ["Jwt:Key"] = "integration-test-signing-key-that-is-longer-than-thirty-two-bytes",
                 ["Jwt:AccessTokenMinutes"] = "60",
