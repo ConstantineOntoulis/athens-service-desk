@@ -1,4 +1,5 @@
-﻿using AthensServiceDesk.Application.Interfaces.Security;
+﻿using AthensServiceDesk.Api.Security;
+using AthensServiceDesk.Application.Interfaces.Security;
 using AthensServiceDesk.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore.Infrastructure;
