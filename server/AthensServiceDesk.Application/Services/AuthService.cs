@@ -13,15 +13,18 @@ public sealed class AuthService : IAuthService
     private readonly IUserRepository _userRepository;
     private readonly IPasswordService _passwordService;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly ICurrentUserService _currentUserService;
 
     public AuthService(
         IUserRepository userRepository,
         IPasswordService passwordService,
-        IJwtTokenService jwtTokenService)
+        IJwtTokenService jwtTokenService,
+        ICurrentUserService currentUserService)
     {
         _userRepository = userRepository;
         _passwordService = passwordService;
         _jwtTokenService = jwtTokenService;
+        _currentUserService = currentUserService;
     }
     public async Task<LoginResponse> LoginAsync(
         LoginRequest request,
@@ -62,14 +65,38 @@ public sealed class AuthService : IAuthService
         {
             AccessToken = token.Token,
             ExpiresAt = token.ExpiresAt,
-            User = new AuthenticatedUserResponse
-            {
-                Id = user.Id,
-                Email = user.Email,
-                FirstName = user.FirstName,
-                LastName = user.LastName,
-                Role = user.Role.ToString()
-            }
+            User = MapUser(user)
+        };
+    }
+
+    public async Task<AuthenticatedUserResponse>
+        GetCurrentUserAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_currentUserService.IsAuthenticated || _currentUserService.UserId is null)
+        {
+            throw new UnauthenticatedException();
+        }
+
+        AppUser? user = await _userRepository.GetByIdAsync(
+            _currentUserService.UserId.Value, cancellationToken);
+
+        if (user is null)
+        {
+            throw new UnauthenticatedException();
+        }
+
+        return MapUser(user);
+    }
+
+    private static AuthenticatedUserResponse MapUser(AppUser user)
+    {
+        return new AuthenticatedUserResponse
+        {
+            Id = user.Id,
+            Email = user.Email,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Role = user.Role.ToString()
         };
     }
 }

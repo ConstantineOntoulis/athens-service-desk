@@ -21,16 +21,16 @@ public sealed class PasswordService : IPasswordService
     public bool VerifyPassword(
         AppUser user,
         string passwordHash,
-        string prividedPassword)
+        string providedPassword)
     {
         ArgumentNullException.ThrowIfNull(user);
         ArgumentException.ThrowIfNullOrWhiteSpace(passwordHash);
-        ArgumentException.ThrowIfNullOrWhiteSpace(prividedPassword);
+        ArgumentException.ThrowIfNullOrWhiteSpace(providedPassword);
 
         PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(
             user,
             passwordHash,
-            prividedPassword);
+            providedPassword);
 
         return result is PasswordVerificationResult.Success or PasswordVerificationResult.SuccessRehashNeeded;
     }

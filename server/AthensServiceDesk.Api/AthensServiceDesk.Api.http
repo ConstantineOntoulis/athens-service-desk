@@ -1,5 +1,17 @@
 @host = http://localhost:5011
 @requestId = 1
+@accessToken = paste-token-here
+
+### Get current authenticated user
+
+GET {{host}}/api/auth/me
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+### Get current user without a token
+
+GET {{host}}/api/auth/me
+Accept: application/json
 
 ### List service requests
 

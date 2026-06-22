@@ -49,6 +49,10 @@ public sealed class JwtTokenService : IJwtTokenService
 
             new(
                 JwtRegisteredClaimNames.GivenName,
+                user.FirstName),
+
+            new(
+                JwtRegisteredClaimNames.FamilyName,
                 user.LastName),
 
             new(

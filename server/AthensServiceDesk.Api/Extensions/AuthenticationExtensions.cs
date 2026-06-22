@@ -1,5 +1,7 @@
-﻿using AthensServiceDesk.Infrastructure.Identity;
+﻿using AthensServiceDesk.Application.Interfaces.Security;
+using AthensServiceDesk.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -10,6 +12,11 @@ public static class AuthenticationExtensions
 {
     public static IServiceCollection AddJwtAuthentication(this IServiceCollection services)
     {
+        services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        }).AddJwtBearer();
         services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
             .Configure<IOptions<JwtOptions>>(
                 (bearerOptions, jwtOptionsAccessor) =>
@@ -43,6 +50,10 @@ public static class AuthenticationExtensions
                         };
                 });
         services.AddAuthorization();
+
+        services.AddHttpContextAccessor();
+
+        services.AddScoped<ICurrentUserService, HttpCurrentUserService>();
 
         return services;
     }
