@@ -3,6 +3,7 @@ using AthensServiceDesk.Api.Extensions;
 using AthensServiceDesk.Application;
 using AthensServiceDesk.Infrastructure;
 using AthensServiceDesk.Infrastructure.Persistence.Seeding;
+using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,9 +22,12 @@ var app = builder.Build();
 
 if (!app.Environment.IsEnvironment("Testing"))
 {
-    await using AsyncServiceScope scope = app.Services.CreateAsyncScope();
+    await using AsyncServiceScope scope =
+        app.Services.CreateAsyncScope();
 
-    DatabaseInitializer databaseInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+    DatabaseInitializer databaseInitializer =
+        scope.ServiceProvider
+            .GetRequiredService<DatabaseInitializer>();
 
     await databaseInitializer.InitializeAsync();
 }
@@ -33,6 +37,11 @@ app.UseExceptionHandler();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("Athens Service Desk API");
+    });
 }
 
 app.UseHttpsRedirection();
