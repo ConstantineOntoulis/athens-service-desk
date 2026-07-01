@@ -10,16 +10,14 @@
 	<ItemGroup>
 		<PackageReference Include="coverlet.collector" Version="10.0.1">
 			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>
-				runtime; build; native; contentfiles; analyzers; buildtransitive
-			</IncludeAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 
-		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.8" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.9" />
 
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.8" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
 
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.6.0" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.7.0" />
 
 		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.3" />
 
@@ -27,9 +25,7 @@
 
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.5">
 			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>
-				runtime; build; native; contentfiles; analyzers; buildtransitive
-			</IncludeAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
 
