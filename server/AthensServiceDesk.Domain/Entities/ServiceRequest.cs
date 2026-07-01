@@ -5,17 +5,16 @@ namespace AthensServiceDesk.Domain.Entities;
 
 public class ServiceRequest : BaseEntity
 {
-    public string Title { get; set; } = string.Empty;
+    public string Title { get; set; } =
+        string.Empty;
 
     public string Description { get; set; } = string.Empty;
 
     public string Location { get; set; } = string.Empty;
 
-    public ServiceRequestStatus Status { get; set; } =
-        ServiceRequestStatus.Submitted;
+    public ServiceRequestStatus Status { get; set; } = ServiceRequestStatus.Submitted;
 
-    public ServicePriority Priority { get; set; } =
-        ServicePriority.Medium;
+    public ServicePriority Priority { get; set; } = ServicePriority.Medium;
 
     public int DepartmentId { get; set; }
 
@@ -38,4 +37,8 @@ public class ServiceRequest : BaseEntity
     public DateTimeOffset? ResolvedAt { get; set; }
 
     public DateTimeOffset? ClosedAt { get; set; }
+
+    public ICollection<RequestStatusHistory>
+        StatusHistory
+    { get; set; } = [];
 }
