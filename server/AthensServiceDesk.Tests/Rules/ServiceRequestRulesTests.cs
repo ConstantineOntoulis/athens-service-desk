@@ -1,174 +1,177 @@
-﻿using AthensServiceDesk.Application.Rules;
+﻿using AthensServiceDesk.Application.Common.Models;
+using AthensServiceDesk.Application.Interfaces.Security;
+using AthensServiceDesk.Application.Rules;
+using AthensServiceDesk.Domain.Entities;
 using AthensServiceDesk.Domain.Enums;
 
 namespace AthensServiceDesk.Tests.Rules;
 
-public class ServiceRequestRulesTests
+public sealed class ServiceRequestAccessRulesTests
 {
-    [Theory]
-    [InlineData(ServiceRequestStatus.Submitted, true)]
-    [InlineData(ServiceRequestStatus.UnderReview, true)]
-    [InlineData(ServiceRequestStatus.Reopened, true)]
-    [InlineData(ServiceRequestStatus.Assigned, false)]
-    [InlineData(ServiceRequestStatus.Scheduled, false)]
-    [InlineData(ServiceRequestStatus.InProgress, false)]
-    [InlineData(ServiceRequestStatus.Resolved, false)]
-    [InlineData(ServiceRequestStatus.Closed, false)]
-    [InlineData(ServiceRequestStatus.Cancelled, false)]
-    [InlineData(ServiceRequestStatus.Rejected, false)]
-    public void CanEdit_ShouldReturnExpectedResult(
-        ServiceRequestStatus status,
-        bool expected)
+    [Fact]
+    public void CanCreate_ShouldReturnTrue_ForCitizen()
     {
-        bool result = ServiceRequestRules.CanEdit(status);
+        bool result =
+            ServiceRequestAccessRules.CanCreate(
+                UserRole.Citizen);
 
-        Assert.Equal(expected, result);
+        Assert.True(result);
     }
 
     [Theory]
-    [InlineData(ServiceRequestStatus.Submitted, true)]
-    [InlineData(ServiceRequestStatus.UnderReview, true)]
-    [InlineData(ServiceRequestStatus.Assigned, true)]
-    [InlineData(ServiceRequestStatus.Scheduled, true)]
-    [InlineData(ServiceRequestStatus.InProgress, false)]
-    [InlineData(ServiceRequestStatus.Resolved, false)]
-    [InlineData(ServiceRequestStatus.Closed, false)]
-    [InlineData(ServiceRequestStatus.Cancelled, false)]
-    [InlineData(ServiceRequestStatus.Rejected, false)]
-    [InlineData(ServiceRequestStatus.Reopened, false)]
-    public void CanCancel_ShouldReturnExpectedResult(ServiceRequestStatus status, bool expected)
+    [InlineData(UserRole.Staff)]
+    [InlineData(UserRole.Manager)]
+    [InlineData(UserRole.Admin)]
+    public void CanCreate_ShouldReturnFalse_ForNonCitizen(
+        UserRole role)
     {
-        bool result = ServiceRequestRules.CanCancel(status);
-
-        Assert.Equal(expected, result);
-    }
-
-    [Theory]
-    [InlineData(ServiceRequestStatus.Submitted, true)]
-    [InlineData(ServiceRequestStatus.UnderReview, true)]
-    [InlineData(ServiceRequestStatus.Reopened, true)]
-    [InlineData(ServiceRequestStatus.Assigned, false)]
-    [InlineData(ServiceRequestStatus.Scheduled, false)]
-    [InlineData(ServiceRequestStatus.InProgress, false)]
-    [InlineData(ServiceRequestStatus.Resolved, false)]
-    [InlineData(ServiceRequestStatus.Closed, false)]
-    [InlineData(ServiceRequestStatus.Cancelled, false)]
-    [InlineData(ServiceRequestStatus.Rejected, false)]
-    public void CanAssign_ShouldReturnExpectedResult(ServiceRequestStatus status, bool expected)
-    {
-        bool result = ServiceRequestRules.CanAssign(status);
-
-        Assert.Equal(expected, result);
-    }
-
-    [Theory]
-    [InlineData(ServiceRequestStatus.InProgress, true)]
-    [InlineData(ServiceRequestStatus.Submitted, false)]
-    [InlineData(ServiceRequestStatus.Assigned, false)]
-    [InlineData(ServiceRequestStatus.Resolved, false)]
-    [InlineData(ServiceRequestStatus.Closed, false)]
-    public void CanResolve_ShouldReturnTrueOnlyForInProgress(ServiceRequestStatus status, bool expected)
-    {
-        bool result = ServiceRequestRules.CanResolve(status);
-
-        Assert.Equal(expected, result);
-    }
-
-    [Theory]
-    [InlineData(ServiceRequestStatus.Resolved, true)]
-    [InlineData(ServiceRequestStatus.Submitted, false)]
-    [InlineData(ServiceRequestStatus.InProgress, false)]
-    [InlineData(ServiceRequestStatus.Closed, false)]
-    [InlineData(ServiceRequestStatus.Cancelled, false)]
-    public void CanClose_ShouldReturnTrueOnlyForResolved(ServiceRequestStatus status, bool expected)
-    {
-        bool result = ServiceRequestRules.CanClose(status);
-
-        Assert.Equal(expected, result);
-    }
-
-    [Theory]
-    [InlineData(1, 1, true)]
-    [InlineData(2, 2, true)]
-    [InlineData(1, 2, false)]
-    [InlineData(0, 1, false)]
-    [InlineData(1, 0, false)]
-    [InlineData(-1, 1, false)]
-    [InlineData(1, -1, false)]
-    public void IsCategoryValidForDepartment_ShouldReturnExpectedResult(
-        int categoryDepartmentId,
-        int selectedDepartmentId,
-        bool expected)
-    {
-        bool result = ServiceRequestRules.IsCategoryValidForDepartment(
-            categoryDepartmentId,
-            selectedDepartmentId);
-
-        Assert.Equal(expected, result);
-    }
-
-    [Theory]
-    [InlineData(ServiceRequestStatus.Submitted, ServiceRequestStatus.UnderReview, true)]
-    [InlineData(ServiceRequestStatus.Submitted, ServiceRequestStatus.Cancelled, true)]
-    [InlineData(ServiceRequestStatus.Submitted, ServiceRequestStatus.Rejected, true)]
-    [InlineData(ServiceRequestStatus.Submitted, ServiceRequestStatus.InProgress, false)]
-
-    [InlineData(ServiceRequestStatus.UnderReview, ServiceRequestStatus.Assigned, true)]
-    [InlineData(ServiceRequestStatus.UnderReview, ServiceRequestStatus.Cancelled, true)]
-    [InlineData(ServiceRequestStatus.UnderReview, ServiceRequestStatus.Rejected, true)]
-    [InlineData(ServiceRequestStatus.UnderReview, ServiceRequestStatus.Closed, false)]
-
-    [InlineData(ServiceRequestStatus.Assigned, ServiceRequestStatus.Scheduled, true)]
-    [InlineData(ServiceRequestStatus.Assigned, ServiceRequestStatus.InProgress, true)]
-    [InlineData(ServiceRequestStatus.Assigned, ServiceRequestStatus.Cancelled, true)]
-    [InlineData(ServiceRequestStatus.Assigned, ServiceRequestStatus.Resolved, false)]
-
-    [InlineData(ServiceRequestStatus.Scheduled, ServiceRequestStatus.InProgress, true)]
-    [InlineData(ServiceRequestStatus.Scheduled, ServiceRequestStatus.Cancelled, true)]
-    [InlineData(ServiceRequestStatus.Scheduled, ServiceRequestStatus.Resolved, false)]
-
-    [InlineData(ServiceRequestStatus.InProgress, ServiceRequestStatus.Resolved, true)]
-    [InlineData(ServiceRequestStatus.InProgress, ServiceRequestStatus.Cancelled, true)]
-    [InlineData(ServiceRequestStatus.InProgress, ServiceRequestStatus.Closed, false)]
-
-    [InlineData(ServiceRequestStatus.Resolved, ServiceRequestStatus.Closed, true)]
-    [InlineData(ServiceRequestStatus.Resolved, ServiceRequestStatus.Reopened, true)]
-    [InlineData(ServiceRequestStatus.Resolved, ServiceRequestStatus.Assigned, false)]
-
-    [InlineData(ServiceRequestStatus.Closed, ServiceRequestStatus.Reopened, true)]
-    [InlineData(ServiceRequestStatus.Closed, ServiceRequestStatus.InProgress, false)]
-
-    [InlineData(ServiceRequestStatus.Reopened, ServiceRequestStatus.UnderReview, true)]
-    [InlineData(ServiceRequestStatus.Reopened, ServiceRequestStatus.Closed, false)]
-
-    [InlineData(ServiceRequestStatus.Rejected, ServiceRequestStatus.UnderReview, false)]
-    [InlineData(ServiceRequestStatus.Cancelled, ServiceRequestStatus.UnderReview, false)]
-    public void CanTransitionStatus_ShouldReturnExpectedResult(
-        ServiceRequestStatus currentStatus,
-        ServiceRequestStatus nextStatus,
-        bool expected)
-    {
-        bool result = ServiceRequestRules.CanTransitionStatus(currentStatus, nextStatus);
-
-        Assert.Equal(expected, result);
-    }
-
-    [Theory]
-    [InlineData(ServiceRequestStatus.Submitted)]
-    [InlineData(ServiceRequestStatus.UnderReview)]
-    [InlineData(ServiceRequestStatus.Assigned)]
-    [InlineData(ServiceRequestStatus.Scheduled)]
-    [InlineData(ServiceRequestStatus.InProgress)]
-    [InlineData(ServiceRequestStatus.Resolved)]
-    [InlineData(ServiceRequestStatus.Closed)]
-    [InlineData(ServiceRequestStatus.Cancelled)]
-    [InlineData(ServiceRequestStatus.Rejected)]
-    [InlineData(ServiceRequestStatus.Reopened)]
-    public void CanTransitionStatus_ShouldReturnFalse_WhenStatusDoesNotChange(
-        ServiceRequestStatus status)
-    {
-        bool result = ServiceRequestRules.CanTransitionStatus(status, status);
+        bool result =
+            ServiceRequestAccessRules.CanCreate(role);
 
         Assert.False(result);
+    }
+
+    [Fact]
+    public void CanView_ShouldReturnTrue_WhenCitizenOwnsRequest()
+    {
+        var scope =
+            new ServiceRequestAccessScope(
+                5,
+                UserRole.Citizen);
+
+        var request =
+            new ServiceRequest
+            {
+                CreatedByUserId = 5
+            };
+
+        Assert.True(
+            ServiceRequestAccessRules.CanView(
+                scope,
+                request));
+    }
+
+    [Fact]
+    public void CanView_ShouldReturnFalse_WhenCitizenDoesNotOwnRequest()
+    {
+        var scope =
+            new ServiceRequestAccessScope(
+                5,
+                UserRole.Citizen);
+
+        var request =
+            new ServiceRequest
+            {
+                CreatedByUserId = 8
+            };
+
+        Assert.False(
+            ServiceRequestAccessRules.CanView(
+                scope,
+                request));
+    }
+
+    [Fact]
+    public void CanView_ShouldReturnTrue_WhenRequestIsAssignedToStaff()
+    {
+        var scope =
+            new ServiceRequestAccessScope(
+                12,
+                UserRole.Staff);
+
+        var request =
+            new ServiceRequest
+            {
+                AssignedToUserId = 12
+            };
+
+        Assert.True(
+            ServiceRequestAccessRules.CanView(
+                scope,
+                request));
+    }
+
+    [Fact]
+    public void CanView_ShouldReturnFalse_WhenRequestIsAssignedToDifferentStaff()
+    {
+        var scope =
+            new ServiceRequestAccessScope(
+                12,
+                UserRole.Staff);
+
+        var request =
+            new ServiceRequest
+            {
+                AssignedToUserId = 20
+            };
+
+        Assert.False(
+            ServiceRequestAccessRules.CanView(
+                scope,
+                request));
+    }
+
+    [Theory]
+    [InlineData(UserRole.Manager)]
+    [InlineData(UserRole.Admin)]
+    public void CanView_ShouldReturnTrue_ForPrivilegedRoles(
+        UserRole role)
+    {
+        var scope =
+            new ServiceRequestAccessScope(
+                30,
+                role);
+
+        var request =
+            new ServiceRequest
+            {
+                CreatedByUserId = 1,
+                AssignedToUserId = 2
+            };
+
+        Assert.True(
+            ServiceRequestAccessRules.CanView(
+                scope,
+                request));
+    }
+
+    [Fact]
+    public void CanEditDetails_ShouldRequireCitizenOwnership()
+    {
+        var ownerScope =
+            new ServiceRequestAccessScope(
+                5,
+                UserRole.Citizen);
+
+        var otherCitizenScope =
+            new ServiceRequestAccessScope(
+                8,
+                UserRole.Citizen);
+
+        var staffScope =
+            new ServiceRequestAccessScope(
+                5,
+                UserRole.Staff);
+
+        var request =
+            new ServiceRequest
+            {
+                CreatedByUserId = 5
+            };
+
+        Assert.True(
+            ServiceRequestAccessRules.CanEditDetails(
+                ownerScope,
+                request));
+
+        Assert.False(
+            ServiceRequestAccessRules.CanEditDetails(
+                otherCitizenScope,
+                request));
+
+        Assert.False(
+            ServiceRequestAccessRules.CanEditDetails(
+                staffScope,
+                request));
     }
 }

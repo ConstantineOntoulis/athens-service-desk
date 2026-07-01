@@ -1,8 +1,10 @@
 ﻿using System.Net;
 using System.Net.Http.Json;
+using AthensServiceDesk.Application.DTOs.Auth;
 using AthensServiceDesk.Application.DTOs.Common;
 using AthensServiceDesk.Application.DTOs.ServiceRequests;
 using AthensServiceDesk.Domain.Enums;
+using AthensServiceDesk.IntegrationTests.Helpers;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AthensServiceDesk.IntegrationTests;
@@ -15,19 +17,29 @@ public sealed class ServiceRequestsEndpointTests
 
     public ServiceRequestsEndpointTests()
     {
-        _factory = new CustomWebApplicationFactory();
-        _client = _factory.CreateClient();
+        _factory =
+            new CustomWebApplicationFactory();
+
+        _client =
+            _factory.CreateClient();
     }
 
     [Fact]
     public async Task GetPaged_ShouldReturnOk()
     {
+        // Arrange
+        await AuthenticationTestHelper
+            .AuthenticateAsCitizenAsync(_client);
+
         // Act
         HttpResponseMessage response =
-            await _client.GetAsync("/api/service-requests");
+            await _client.GetAsync(
+                "/api/service-requests");
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode);
 
         PagedResponse<ServiceRequestResponse> body =
             await response.Content
@@ -46,6 +58,10 @@ public sealed class ServiceRequestsEndpointTests
     public async Task Post_ShouldReturnCreated_WhenRequestIsValid()
     {
         // Arrange
+        LoginResponse login =
+            await AuthenticationTestHelper
+                .AuthenticateAsCitizenAsync(_client);
+
         CreateServiceRequestRequest request =
             CreateValidRequest();
 
@@ -64,19 +80,42 @@ public sealed class ServiceRequestsEndpointTests
             await ReadDetailsResponseAsync(response);
 
         Assert.True(body.Id > 0);
-        Assert.Equal(request.Title, body.Title);
-        Assert.Equal("Submitted", body.Status);
-        Assert.Equal("High", body.Priority);
-        Assert.Equal(2, body.DepartmentId);
-        Assert.Equal(3, body.ServiceCategoryId);
 
-        Assert.NotNull(response.Headers.Location);
+        Assert.Equal(
+            request.Title,
+            body.Title);
+
+        Assert.Equal(
+            "Submitted",
+            body.Status);
+
+        Assert.Equal(
+            "High",
+            body.Priority);
+
+        Assert.Equal(
+            2,
+            body.DepartmentId);
+
+        Assert.Equal(
+            3,
+            body.ServiceCategoryId);
+
+        Assert.Equal(
+            login.User.Id,
+            body.CreatedByUserId);
+
+        Assert.NotNull(
+            response.Headers.Location);
     }
 
     [Fact]
     public async Task GetById_ShouldReturnOk_WhenRequestExists()
     {
         // Arrange
+        await AuthenticationTestHelper
+            .AuthenticateAsCitizenAsync(_client);
+
         ServiceRequestDetailsResponse created =
             await CreateRequestAsync();
 
@@ -86,14 +125,25 @@ public sealed class ServiceRequestsEndpointTests
                 $"/api/service-requests/{created.Id}");
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode);
 
         ServiceRequestDetailsResponse body =
             await ReadDetailsResponseAsync(response);
 
-        Assert.Equal(created.Id, body.Id);
-        Assert.Equal(created.Title, body.Title);
-        Assert.Equal("Infrastructure", body.DepartmentName);
+        Assert.Equal(
+            created.Id,
+            body.Id);
+
+        Assert.Equal(
+            created.Title,
+            body.Title);
+
+        Assert.Equal(
+            "Infrastructure",
+            body.DepartmentName);
+
         Assert.Equal(
             "Streetlight Issue",
             body.ServiceCategoryName);
@@ -102,6 +152,10 @@ public sealed class ServiceRequestsEndpointTests
     [Fact]
     public async Task GetById_ShouldReturnNotFound_WhenRequestDoesNotExist()
     {
+        // Arrange
+        await AuthenticationTestHelper
+            .AuthenticateAsCitizenAsync(_client);
+
         // Act
         HttpResponseMessage response =
             await _client.GetAsync(
@@ -118,23 +172,32 @@ public sealed class ServiceRequestsEndpointTests
             ?? throw new InvalidOperationException(
                 "The problem response body was empty.");
 
-        Assert.Equal(404, problem.Status);
-        Assert.Equal("Resource not found", problem.Title);
+        Assert.Equal(
+            404,
+            problem.Status);
+
+        Assert.Equal(
+            "Resource not found",
+            problem.Title);
     }
 
     [Fact]
     public async Task Post_ShouldReturnBadRequest_WhenDtoIsInvalid()
     {
         // Arrange
-        var invalidRequest = new
-        {
-            title = "Bad",
-            description = "Too short",
-            location = "",
-            departmentId = 0,
-            serviceCategoryId = 0,
-            priority = 2
-        };
+        await AuthenticationTestHelper
+            .AuthenticateAsCitizenAsync(_client);
+
+        var invalidRequest =
+            new
+            {
+                title = "Bad",
+                description = "Too short",
+                location = "",
+                departmentId = 0,
+                serviceCategoryId = 0,
+                priority = 2
+            };
 
         // Act
         HttpResponseMessage response =
@@ -152,17 +215,31 @@ public sealed class ServiceRequestsEndpointTests
     public async Task Post_ShouldReturnConflict_WhenCategoryDoesNotBelongToDepartment()
     {
         // Arrange
-        var request = new CreateServiceRequestRequest
-        {
-            Title = "Mismatched department and category",
-            Description =
-                "This request intentionally uses a category " +
-                "that belongs to another department.",
-            Location = "Athens",
-            DepartmentId = 1,
-            ServiceCategoryId = 3,
-            Priority = ServicePriority.Medium
-        };
+        await AuthenticationTestHelper
+            .AuthenticateAsCitizenAsync(_client);
+
+        var request =
+            new CreateServiceRequestRequest
+            {
+                Title =
+                    "Mismatched department and category",
+
+                Description =
+                    "This request intentionally uses a category " +
+                    "that belongs to another department.",
+
+                Location =
+                    "Athens",
+
+                DepartmentId =
+                    1,
+
+                ServiceCategoryId =
+                    3,
+
+                Priority =
+                    ServicePriority.Medium
+            };
 
         // Act
         HttpResponseMessage response =
@@ -181,22 +258,30 @@ public sealed class ServiceRequestsEndpointTests
             ?? throw new InvalidOperationException(
                 "The problem response body was empty.");
 
-        Assert.Equal(409, problem.Status);
+        Assert.Equal(
+            409,
+            problem.Status);
+
         Assert.Equal(
             "Business rule violation",
             problem.Title);
 
-        Assert.NotNull(problem.Detail);
+        Assert.NotNull(
+            problem.Detail);
 
         Assert.Contains(
             "does not belong",
-            problem.Detail);
+            problem.Detail,
+            StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
     public async Task Put_ShouldReturnOk_WhenRequestIsEditable()
     {
         // Arrange
+        await AuthenticationTestHelper
+            .AuthenticateAsCitizenAsync(_client);
+
         ServiceRequestDetailsResponse created =
             await CreateRequestAsync();
 
@@ -205,14 +290,22 @@ public sealed class ServiceRequestsEndpointTests
             {
                 Title =
                     "Updated broken streetlight report",
+
                 Description =
                     "The streetlight remains broken and " +
                     "the pedestrian area is still dark.",
+
                 Location =
                     "Central Syntagma Square, Athens",
-                DepartmentId = 2,
-                ServiceCategoryId = 3,
-                Priority = ServicePriority.Urgent
+
+                DepartmentId =
+                    2,
+
+                ServiceCategoryId =
+                    3,
+
+                Priority =
+                    ServicePriority.Urgent
             };
 
         // Act
@@ -222,20 +315,35 @@ public sealed class ServiceRequestsEndpointTests
                 updateRequest);
 
         // Assert
-        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+        Assert.Equal(
+            HttpStatusCode.OK,
+            response.StatusCode);
 
         ServiceRequestDetailsResponse body =
             await ReadDetailsResponseAsync(response);
 
-        Assert.Equal(updateRequest.Title, body.Title);
+        Assert.Equal(
+            updateRequest.Title,
+            body.Title);
+
         Assert.Equal(
             updateRequest.Description,
             body.Description);
+
         Assert.Equal(
             updateRequest.Location,
             body.Location);
-        Assert.Equal("Urgent", body.Priority);
-        Assert.NotNull(body.UpdatedAt);
+
+        Assert.Equal(
+            "Urgent",
+            body.Priority);
+
+        Assert.Equal(
+            created.CreatedByUserId,
+            body.CreatedByUserId);
+
+        Assert.NotNull(
+            body.UpdatedAt);
     }
 
     private async Task<ServiceRequestDetailsResponse>
@@ -260,13 +368,22 @@ public sealed class ServiceRequestsEndpointTests
         {
             Title =
                 "Broken streetlight near Syntagma Square",
+
             Description =
                 "The streetlight has not worked for " +
                 "several nights and the area is dark.",
-            Location = "Syntagma Square, Athens",
-            DepartmentId = 2,
-            ServiceCategoryId = 3,
-            Priority = ServicePriority.High
+
+            Location =
+                "Syntagma Square, Athens",
+
+            DepartmentId =
+                2,
+
+            ServiceCategoryId =
+                3,
+
+            Priority =
+                ServicePriority.High
         };
     }
 
