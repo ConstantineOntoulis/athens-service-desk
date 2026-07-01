@@ -1,23 +1,31 @@
-﻿using AthensServiceDesk.Application.DTOs.Common;
+﻿using AthensServiceDesk.Api.Authorization;
+using AthensServiceDesk.Application.DTOs.Common;
 using AthensServiceDesk.Application.DTOs.ServiceRequests;
 using AthensServiceDesk.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AthensServiceDesk.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/service-requests")]
-public class ServiceRequestsController : ControllerBase
+public sealed class ServiceRequestsController : ControllerBase
 {
     private readonly IServiceRequestService _serviceRequestService;
 
-public ServiceRequestsController(
-    IServiceRequestService serviceRequestService)
+    public ServiceRequestsController(
+        IServiceRequestService serviceRequestService)
     {
         _serviceRequestService = serviceRequestService;
     }
 
     [HttpGet]
+    [ProducesResponseType<
+        PagedResponse<ServiceRequestResponse>>(
+            StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized)]
     public async Task<
         ActionResult<PagedResponse<ServiceRequestResponse>>> GetPaged(
         [FromQuery] ServiceRequestQuery query,
@@ -32,7 +40,16 @@ public ServiceRequestsController(
     }
 
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<ServiceRequestDetailsResponse>> GetById(
+    [ProducesResponseType<ServiceRequestDetailsResponse>(
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(
+        StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound)]
+    public async Task<
+        ActionResult<ServiceRequestDetailsResponse>> GetById(
         int id,
         CancellationToken cancellationToken)
     {
@@ -44,8 +61,21 @@ public ServiceRequestsController(
         return Ok(response);
     }
 
+    [Authorize(
+        Policy = AuthorizationPolicies.CitizenOnly)]
     [HttpPost]
-    public async Task<ActionResult<ServiceRequestDetailsResponse>> Create(
+    [ProducesResponseType<ServiceRequestDetailsResponse>(
+        StatusCodes.Status201Created)]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(
+        StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(
+        StatusCodes.Status409Conflict)]
+    public async Task<
+        ActionResult<ServiceRequestDetailsResponse>> Create(
         [FromBody] CreateServiceRequestRequest request,
         CancellationToken cancellationToken)
     {
@@ -60,8 +90,23 @@ public ServiceRequestsController(
             response);
     }
 
+    [Authorize(
+        Policy = AuthorizationPolicies.CitizenOnly)]
     [HttpPut("{id:int}")]
-    public async Task<ActionResult<ServiceRequestDetailsResponse>> Update(
+    [ProducesResponseType<ServiceRequestDetailsResponse>(
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(
+        StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        StatusCodes.Status409Conflict)]
+    public async Task<
+        ActionResult<ServiceRequestDetailsResponse>> Update(
         int id,
         [FromBody] UpdateServiceRequestRequest request,
         CancellationToken cancellationToken)

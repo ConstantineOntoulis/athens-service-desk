@@ -18,15 +18,22 @@ public sealed class GlobalExceptionHandler(
             {
                 InvalidCredentialsException =>
                 (
-                  StatusCodes.Status401Unauthorized,
-                  "Authentication failed",
-                  exception.Message
+                    StatusCodes.Status401Unauthorized,
+                    "Authentication failed",
+                    exception.Message
                 ),
 
                 UnauthenticatedException =>
                 (
                     StatusCodes.Status401Unauthorized,
                     "Authentication required",
+                    exception.Message
+                ),
+
+                ForbiddenException =>
+                (
+                    StatusCodes.Status403Forbidden,
+                    "Access forbidden",
                     exception.Message
                 ),
 
@@ -59,12 +66,15 @@ public sealed class GlobalExceptionHandler(
                 )
             };
 
-        if (statusCode == StatusCodes.Status401Unauthorized)
+        if (statusCode ==
+            StatusCodes.Status401Unauthorized)
         {
-            httpContext.Response.Headers.WWWAuthenticate = "Bearer";
+            httpContext.Response.Headers.WWWAuthenticate =
+                "Bearer";
         }
 
-        if (statusCode >= StatusCodes.Status500InternalServerError)
+        if (statusCode >=
+            StatusCodes.Status500InternalServerError)
         {
             logger.LogError(
                 exception,
@@ -90,10 +100,11 @@ public sealed class GlobalExceptionHandler(
             title: title,
             detail: detail,
             instance: httpContext.Request.Path,
-            extensions: new Dictionary<string, object?>
-            {
-                ["traceId"] = traceId
-            })
+            extensions:
+                new Dictionary<string, object?>
+                {
+                    ["traceId"] = traceId
+                })
             .ExecuteAsync(httpContext);
 
         return true;
