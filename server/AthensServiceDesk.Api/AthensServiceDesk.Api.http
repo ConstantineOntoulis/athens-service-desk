@@ -1,113 +1,28 @@
 @host = http://localhost:5011
 @requestId = 1
-@accessToken = paste-token-here
 
-### Get current authenticated user
+# After logging in, copy the accessToken value from the response
+# and replace paste-citizen-token-here below.
+@accessToken = paste-citizen-token-here
 
-GET {{host}}/api/auth/me
-Authorization: Bearer {{accessToken}}
+
+### OpenAPI document
+
+GET {{host}}/openapi/v1.json
 Accept: application/json
 
-### Get current user without a token
 
-GET {{host}}/api/auth/me
-Accept: application/json
+### Scalar API interface
 
-### List service requests
+GET {{host}}/scalar/v1
+Accept: text/html
 
-GET {{host}}/api/service-requests
-Accept: application/json
-
-### List with pagination and filtering
-
-GET {{host}}/api/service-requests?page=1&pageSize=10&status=Submitted&sortBy=createdAt&sortDirection=desc
-Accept: application/json
-
-### Create a valid service request
-
-POST {{host}}/api/service-requests
-Content-Type: application/json
-
-{
-  "title": "Broken streetlight near Syntagma Square",
-  "description": "The streetlight has not worked for several nights and the surrounding area is very dark.",
-  "location": "Syntagma Square, Athens",
-  "departmentId": 2,
-  "serviceCategoryId": 3,
-  "priority": 3
-}
-
-### Get a service request by id
-
-GET {{host}}/api/service-requests/{{requestId}}
-Accept: application/json
-
-### Update an editable service request
-
-PUT {{host}}/api/service-requests/{{requestId}}
-Content-Type: application/json
-
-{
-  "title": "Broken streetlight near central Syntagma Square",
-  "description": "The streetlight remains broken and the surrounding pedestrian area has insufficient lighting.",
-  "location": "Central Syntagma Square, Athens",
-  "departmentId": 2,
-  "serviceCategoryId": 3,
-  "priority": 4
-}
-
-### Get a request that does not exist
-
-GET {{host}}/api/service-requests/999999
-Accept: application/json
-
-### Create an invalid request
-
-POST {{host}}/api/service-requests
-Content-Type: application/json
-
-{
-  "title": "Bad",
-  "description": "Too short",
-  "location": "",
-  "departmentId": 0,
-  "serviceCategoryId": 0,
-  "priority": 2
-}
-
-### Create with a mismatched department and category
-
-POST {{host}}/api/service-requests
-Content-Type: application/json
-
-{
-  "title": "Mismatched department and service category",
-  "description": "This request intentionally uses a category that does not belong to the selected department.",
-  "location": "Athens",
-  "departmentId": 1,
-  "serviceCategoryId": 3,
-  "priority": 2
-}
-
-### Get active departments
-
-GET {{host}}/api/departments
-Accept: application/json
-
-### Get active service categories for Infrastructure
-
-GET {{host}}/api/departments/2/service-categories
-Accept: application/json
-
-### Get categories for a missing department
-
-GET {{host}}/api/departments/999999/service-categories
-Accept: application/json
 
 ### Login as citizen
 
 POST {{host}}/api/auth/login
 Content-Type: application/json
+Accept: application/json
 
 {
   "email": "citizen@athensdesk.local",
@@ -115,10 +30,47 @@ Content-Type: application/json
 }
 
 
-### Login with incorrect password
+### Login as staff
 
 POST {{host}}/api/auth/login
 Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "staff@athensdesk.local",
+  "password": "AthensDemo!2026"
+}
+
+
+### Login as manager
+
+POST {{host}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "manager@athensdesk.local",
+  "password": "AthensDemo!2026"
+}
+
+
+### Login as admin
+
+POST {{host}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{
+  "email": "admin@athensdesk.local",
+  "password": "AthensDemo!2026"
+}
+
+
+### Login with an incorrect password
+
+POST {{host}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
 
 {
   "email": "citizen@athensdesk.local",
@@ -130,8 +82,165 @@ Content-Type: application/json
 
 POST {{host}}/api/auth/login
 Content-Type: application/json
+Accept: application/json
 
 {
   "email": "not-an-email",
   "password": "short"
+}
+
+
+### Get current authenticated user
+
+GET {{host}}/api/auth/me
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+
+### Get current user without a token - expected 401
+
+GET {{host}}/api/auth/me
+Accept: application/json
+
+
+### Get active departments
+
+GET {{host}}/api/departments
+Accept: application/json
+
+
+### Get active service categories for Infrastructure
+
+GET {{host}}/api/departments/2/service-categories
+Accept: application/json
+
+
+### Get service categories for a missing department - expected 404
+
+GET {{host}}/api/departments/999999/service-categories
+Accept: application/json
+
+
+### List service requests for the authenticated user
+
+GET {{host}}/api/service-requests
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+
+### List service requests with filtering and pagination
+
+GET {{host}}/api/service-requests?page=1&pageSize=10&status=Submitted&priority=High&departmentId=2&sortBy=createdAt&sortDirection=desc
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+
+### Search service requests
+
+GET {{host}}/api/service-requests?page=1&pageSize=10&search=streetlight
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+
+### Create a valid service request
+
+POST {{host}}/api/service-requests
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Broken streetlight near Syntagma Square",
+  "description": "The streetlight has not worked for several nights and the surrounding area is very dark.",
+  "location": "Syntagma Square, Athens",
+  "departmentId": 2,
+  "serviceCategoryId": 3,
+  "priority": 3
+}
+
+
+### Get a service request by id
+
+GET {{host}}/api/service-requests/{{requestId}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+
+### Update an editable service request
+
+PUT {{host}}/api/service-requests/{{requestId}}
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Broken streetlight near central Syntagma Square",
+  "description": "The streetlight remains broken and the surrounding pedestrian area has insufficient lighting.",
+  "location": "Central Syntagma Square, Athens",
+  "departmentId": 2,
+  "serviceCategoryId": 3,
+  "priority": 4
+}
+
+
+### Get a request that does not exist - expected 404
+
+GET {{host}}/api/service-requests/999999
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+
+### Create an invalid request - expected 400
+
+POST {{host}}/api/service-requests
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Bad",
+  "description": "Too short",
+  "location": "",
+  "departmentId": 0,
+  "serviceCategoryId": 0,
+  "priority": 2
+}
+
+
+### Create with a mismatched department and category - expected 409
+
+POST {{host}}/api/service-requests
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Mismatched department and service category",
+  "description": "This request intentionally uses a category that does not belong to the selected department.",
+  "location": "Athens",
+  "departmentId": 1,
+  "serviceCategoryId": 3,
+  "priority": 2
+}
+
+
+### List service requests without authentication - expected 401
+
+GET {{host}}/api/service-requests
+Accept: application/json
+
+
+### Create service request without authentication - expected 401
+
+POST {{host}}/api/service-requests
+Content-Type: application/json
+Accept: application/json
+
+{
+  "title": "Anonymous service request",
+  "description": "This request should be rejected because it does not contain an access token.",
+  "location": "Athens",
+  "departmentId": 2,
+  "serviceCategoryId": 3,
+  "priority": 2
 }
