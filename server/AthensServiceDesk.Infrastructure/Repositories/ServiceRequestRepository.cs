@@ -27,6 +27,8 @@ public sealed class ServiceRequestRepository
             .AsNoTracking()
             .Include(request => request.Department)
             .Include(request => request.ServiceCategory)
+            .Include(request => request.StatusHistory)
+                .ThenInclude(history => history.ChangedByUser)
             .FirstOrDefaultAsync(
                 request => request.Id == id,
                 cancellationToken);
@@ -133,8 +135,7 @@ public sealed class ServiceRequestRepository
             UserRole.Admin => requests,
 
             _ =>
-                requests.Where(
-                    _ => false)
+                requests.Where(_ => false)
         };
     }
 
@@ -143,11 +144,9 @@ public sealed class ServiceRequestRepository
             IQueryable<ServiceRequest> requests,
             ServiceRequestQuery query)
     {
-        if (!string.IsNullOrWhiteSpace(
-                query.Search))
+        if (!string.IsNullOrWhiteSpace(query.Search))
         {
-            string search =
-                query.Search.Trim();
+            string search = query.Search.Trim();
 
             requests =
                 requests.Where(

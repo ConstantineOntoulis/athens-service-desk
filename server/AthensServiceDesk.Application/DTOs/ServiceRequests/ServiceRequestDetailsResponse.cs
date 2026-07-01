@@ -35,4 +35,8 @@ public class ServiceRequestDetailsResponse
     public DateTimeOffset CreatedAt { get; set; }
 
     public DateTimeOffset? UpdatedAt { get; set; }
+
+    public IReadOnlyList<RequestStatusHistoryResponse>
+        StatusHistory
+    { get; set; } = [];
 }
