@@ -1,7 +1,9 @@
 ﻿using AthensServiceDesk.Application.Common.Exceptions;
+using AthensServiceDesk.Application.Common.Models;
 using AthensServiceDesk.Application.DTOs.Common;
 using AthensServiceDesk.Application.DTOs.ServiceRequests;
 using AthensServiceDesk.Application.Interfaces.Persistence;
+using AthensServiceDesk.Application.Interfaces.Security;
 using AthensServiceDesk.Application.Interfaces.Services;
 using AthensServiceDesk.Application.Mappings;
 using AthensServiceDesk.Application.Rules;
@@ -10,45 +12,75 @@ using AthensServiceDesk.Domain.Enums;
 
 namespace AthensServiceDesk.Application.Services;
 
-public sealed class ServiceRequestService : IServiceRequestService
+public sealed class ServiceRequestService
+    : IServiceRequestService
 {
-    private readonly IServiceRequestRepository _serviceRequestRepository;
-    private readonly IDepartmentRepository _departmentRepository;
-    private readonly IServiceCategoryRepository _serviceCategoryRepository;
+    private readonly IServiceRequestRepository
+        _serviceRequestRepository;
+
+    private readonly IDepartmentRepository
+        _departmentRepository;
+
+    private readonly IServiceCategoryRepository
+        _serviceCategoryRepository;
+
     private readonly IUnitOfWork _unitOfWork;
+
+    private readonly ICurrentUserService
+        _currentUserService;
 
     public ServiceRequestService(
         IServiceRequestRepository serviceRequestRepository,
         IDepartmentRepository departmentRepository,
         IServiceCategoryRepository serviceCategoryRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ICurrentUserService currentUserService)
     {
-        _serviceRequestRepository = serviceRequestRepository;
-        _departmentRepository = departmentRepository;
-        _serviceCategoryRepository = serviceCategoryRepository;
+        _serviceRequestRepository =
+            serviceRequestRepository;
+
+        _departmentRepository =
+            departmentRepository;
+
+        _serviceCategoryRepository =
+            serviceCategoryRepository;
+
         _unitOfWork = unitOfWork;
+
+        _currentUserService =
+            currentUserService;
     }
 
-    public async Task<PagedResponse<ServiceRequestResponse>> GetPagedAsync(
+    public async Task<
+        PagedResponse<ServiceRequestResponse>> GetPagedAsync(
         ServiceRequestQuery query,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(query);
+
+        ServiceRequestAccessScope accessScope =
+            GetRequiredAccessScope();
+
         ServiceRequestQuery normalizedQuery =
             QueryRules.Normalize(query);
 
         IReadOnlyList<ServiceRequest> serviceRequests =
             await _serviceRequestRepository.ListAsync(
                 normalizedQuery,
+                accessScope,
                 cancellationToken);
 
         int totalCount =
             await _serviceRequestRepository.CountAsync(
                 normalizedQuery,
+                accessScope,
                 cancellationToken);
 
-        List<ServiceRequestResponse> responseItems = serviceRequests
-            .Select(ServiceRequestMapper.ToResponse)
-            .ToList();
+        List<ServiceRequestResponse> responseItems =
+            serviceRequests
+                .Select(
+                    ServiceRequestMapper.ToResponse)
+                .ToList();
 
         return new PagedResponse<ServiceRequestResponse>
         {
@@ -59,11 +91,15 @@ public sealed class ServiceRequestService : IServiceRequestService
         };
     }
 
-    public async Task<ServiceRequestDetailsResponse> GetByIdAsync(
+    public async Task<
+        ServiceRequestDetailsResponse> GetByIdAsync(
         int id,
         CancellationToken cancellationToken = default)
     {
         EnsureValidId(id);
+
+        ServiceRequestAccessScope accessScope =
+            GetRequiredAccessScope();
 
         ServiceRequest? serviceRequest =
             await _serviceRequestRepository.GetByIdAsync(
@@ -72,46 +108,87 @@ public sealed class ServiceRequestService : IServiceRequestService
 
         if (serviceRequest is null)
         {
-            throw new NotFoundException("Service request", id);
+            throw new NotFoundException(
+                "Service request",
+                id);
         }
 
-        return ServiceRequestMapper.ToDetailsResponse(serviceRequest);
+        bool canView =
+            ServiceRequestAccessRules.CanView(
+                accessScope,
+                serviceRequest);
+
+        if (!canView)
+        {
+            throw new ForbiddenException(
+                "You do not have permission to view this service request.");
+        }
+
+        return ServiceRequestMapper
+            .ToDetailsResponse(serviceRequest);
     }
 
-    public async Task<ServiceRequestDetailsResponse> CreateAsync(
+    public async Task<
+        ServiceRequestDetailsResponse> CreateAsync(
         CreateServiceRequestRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
+
+        ServiceRequestAccessScope accessScope =
+            GetRequiredAccessScope();
+
+        bool canCreate =
+            ServiceRequestAccessRules.CanCreate(
+                accessScope.Role);
+
+        if (!canCreate)
+        {
+            throw new ForbiddenException(
+                "Only citizens can create service requests.");
+        }
 
         await ValidateDepartmentAndCategoryAsync(
             request.DepartmentId,
             request.ServiceCategoryId,
             cancellationToken);
 
-        var serviceRequest = new ServiceRequest
-        {
-            Title = request.Title.Trim(),
-            Description = request.Description.Trim(),
-            Location = request.Location.Trim(),
-            DepartmentId = request.DepartmentId,
-            ServiceCategoryId = request.ServiceCategoryId,
-            Priority = request.Priority,
+        var serviceRequest =
+            new ServiceRequest
+            {
+                Title = request.Title.Trim(),
 
-            // The client is not allowed to choose the initial status.
-            Status = ServiceRequestStatus.Submitted,
+                Description =
+                    request.Description.Trim(),
 
-            // This will be assigned from the authenticated user later.
-            CreatedByUserId = null,
+                Location =
+                    request.Location.Trim(),
 
-            CreatedAt = DateTimeOffset.UtcNow
-        };
+                DepartmentId =
+                    request.DepartmentId,
+
+                ServiceCategoryId =
+                    request.ServiceCategoryId,
+
+                Priority =
+                    request.Priority,
+
+                Status =
+                    ServiceRequestStatus.Submitted,
+
+                CreatedByUserId =
+                    accessScope.UserId,
+
+                CreatedAt =
+                    DateTimeOffset.UtcNow
+            };
 
         await _serviceRequestRepository.AddAsync(
             serviceRequest,
             cancellationToken);
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(
+            cancellationToken);
 
         ServiceRequest? createdServiceRequest =
             await _serviceRequestRepository.GetByIdAsync(
@@ -129,7 +206,8 @@ public sealed class ServiceRequestService : IServiceRequestService
             createdServiceRequest);
     }
 
-    public async Task<ServiceRequestDetailsResponse> UpdateAsync(
+    public async Task<
+        ServiceRequestDetailsResponse> UpdateAsync(
         int id,
         UpdateServiceRequestRequest request,
         CancellationToken cancellationToken = default)
@@ -137,17 +215,35 @@ public sealed class ServiceRequestService : IServiceRequestService
         EnsureValidId(id);
         ArgumentNullException.ThrowIfNull(request);
 
+        ServiceRequestAccessScope accessScope =
+            GetRequiredAccessScope();
+
         ServiceRequest? serviceRequest =
-            await _serviceRequestRepository.GetByIdForUpdateAsync(
-                id,
-                cancellationToken);
+            await _serviceRequestRepository
+                .GetByIdForUpdateAsync(
+                    id,
+                    cancellationToken);
 
         if (serviceRequest is null)
         {
-            throw new NotFoundException("Service request", id);
+            throw new NotFoundException(
+                "Service request",
+                id);
         }
 
-        if (!ServiceRequestRules.CanEdit(serviceRequest.Status))
+        bool canEditDetails =
+            ServiceRequestAccessRules.CanEditDetails(
+                accessScope,
+                serviceRequest);
+
+        if (!canEditDetails)
+        {
+            throw new ForbiddenException(
+                "You do not have permission to edit this service request.");
+        }
+
+        if (!ServiceRequestRules.CanEdit(
+                serviceRequest.Status))
         {
             throw new BusinessRuleException(
                 $"A service request with status " +
@@ -159,15 +255,29 @@ public sealed class ServiceRequestService : IServiceRequestService
             request.ServiceCategoryId,
             cancellationToken);
 
-        serviceRequest.Title = request.Title.Trim();
-        serviceRequest.Description = request.Description.Trim();
-        serviceRequest.Location = request.Location.Trim();
-        serviceRequest.DepartmentId = request.DepartmentId;
-        serviceRequest.ServiceCategoryId = request.ServiceCategoryId;
-        serviceRequest.Priority = request.Priority;
-        serviceRequest.UpdatedAt = DateTimeOffset.UtcNow;
+        serviceRequest.Title =
+            request.Title.Trim();
 
-        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        serviceRequest.Description =
+            request.Description.Trim();
+
+        serviceRequest.Location =
+            request.Location.Trim();
+
+        serviceRequest.DepartmentId =
+            request.DepartmentId;
+
+        serviceRequest.ServiceCategoryId =
+            request.ServiceCategoryId;
+
+        serviceRequest.Priority =
+            request.Priority;
+
+        serviceRequest.UpdatedAt =
+            DateTimeOffset.UtcNow;
+
+        await _unitOfWork.SaveChangesAsync(
+            cancellationToken);
 
         ServiceRequest? updatedServiceRequest =
             await _serviceRequestRepository.GetByIdAsync(
@@ -185,10 +295,26 @@ public sealed class ServiceRequestService : IServiceRequestService
             updatedServiceRequest);
     }
 
-    private async Task ValidateDepartmentAndCategoryAsync(
-        int departmentId,
-        int serviceCategoryId,
-        CancellationToken cancellationToken)
+    private ServiceRequestAccessScope
+        GetRequiredAccessScope()
+    {
+        if (!_currentUserService.IsAuthenticated
+            || _currentUserService.UserId is null
+            || _currentUserService.Role is null)
+        {
+            throw new UnauthenticatedException();
+        }
+
+        return new ServiceRequestAccessScope(
+            _currentUserService.UserId.Value,
+            _currentUserService.Role.Value);
+    }
+
+    private async Task
+        ValidateDepartmentAndCategoryAsync(
+            int departmentId,
+            int serviceCategoryId,
+            CancellationToken cancellationToken)
     {
         bool departmentExists =
             await _departmentRepository.ExistsAsync(
@@ -202,9 +328,10 @@ public sealed class ServiceRequestService : IServiceRequestService
         }
 
         int? categoryDepartmentId =
-            await _serviceCategoryRepository.GetDepartmentIdAsync(
-                serviceCategoryId,
-                cancellationToken);
+            await _serviceCategoryRepository
+                .GetDepartmentIdAsync(
+                    serviceCategoryId,
+                    cancellationToken);
 
         if (categoryDepartmentId is null)
         {
@@ -213,9 +340,10 @@ public sealed class ServiceRequestService : IServiceRequestService
         }
 
         bool categoryIsValid =
-            ServiceRequestRules.IsCategoryValidForDepartment(
-                categoryDepartmentId.Value,
-                departmentId);
+            ServiceRequestRules
+                .IsCategoryValidForDepartment(
+                    categoryDepartmentId.Value,
+                    departmentId);
 
         if (!categoryIsValid)
         {

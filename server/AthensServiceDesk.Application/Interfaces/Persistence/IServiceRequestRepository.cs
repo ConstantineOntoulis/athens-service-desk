@@ -1,4 +1,5 @@
-﻿using AthensServiceDesk.Application.DTOs.ServiceRequests;
+﻿using AthensServiceDesk.Application.Common.Models;
+using AthensServiceDesk.Application.DTOs.ServiceRequests;
 using AthensServiceDesk.Domain.Entities;
 
 namespace AthensServiceDesk.Application.Interfaces.Persistence;
@@ -15,14 +16,15 @@ public interface IServiceRequestRepository
 
     Task<IReadOnlyList<ServiceRequest>> ListAsync(
         ServiceRequestQuery query,
+        ServiceRequestAccessScope accessScope,
         CancellationToken cancellationToken = default);
 
     Task<int> CountAsync(
         ServiceRequestQuery query,
+        ServiceRequestAccessScope accessScope,
         CancellationToken cancellationToken = default);
 
     Task AddAsync(
         ServiceRequest serviceRequest,
         CancellationToken cancellationToken = default);
-    
 }
