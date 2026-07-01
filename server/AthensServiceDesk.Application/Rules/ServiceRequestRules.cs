@@ -4,43 +4,55 @@ namespace AthensServiceDesk.Application.Rules;
 
 public static class ServiceRequestRules
 {
-    public static bool CanEdit(ServiceRequestStatus status)
+    public static bool CanEdit(
+        ServiceRequestStatus status)
     {
-        return status is ServiceRequestStatus.Submitted
+        return status is
+            ServiceRequestStatus.Submitted
             or ServiceRequestStatus.UnderReview
             or ServiceRequestStatus.Reopened;
     }
 
-    public static bool CanCancel(ServiceRequestStatus status)
+    public static bool CanCancel(
+        ServiceRequestStatus status)
     {
-        return status is ServiceRequestStatus.Submitted
-            or ServiceRequestStatus.UnderReview
-            or ServiceRequestStatus.Assigned
-            or ServiceRequestStatus.Scheduled;
+        return CanTransitionStatus(
+            status,
+            ServiceRequestStatus.Cancelled);
     }
 
-    public static bool CanAssign(ServiceRequestStatus status)
+    public static bool CanAssign(
+        ServiceRequestStatus status)
     {
-        return status is ServiceRequestStatus.Submitted
-            or ServiceRequestStatus.UnderReview
-            or ServiceRequestStatus.Reopened;
+        return CanTransitionStatus(
+            status,
+            ServiceRequestStatus.Assigned);
     }
 
-    public static bool CanResolve(ServiceRequestStatus status)
+    public static bool CanResolve(
+        ServiceRequestStatus status)
     {
-        return status == ServiceRequestStatus.InProgress;
+        return CanTransitionStatus(
+            status,
+            ServiceRequestStatus.Resolved);
     }
 
-    public static bool CanClose(ServiceRequestStatus status)
+    public static bool CanClose(
+        ServiceRequestStatus status)
     {
-        return status == ServiceRequestStatus.Resolved;
+        return CanTransitionStatus(
+            status,
+            ServiceRequestStatus.Closed);
     }
 
-    public static bool IsCategoryValidForDepartment(int categoryDepartmentId, int selectedDepartmentId)
+    public static bool IsCategoryValidForDepartment(
+        int categoryDepartmentId,
+        int selectedDepartmentId)
     {
         return categoryDepartmentId > 0
             && selectedDepartmentId > 0
-            && categoryDepartmentId == selectedDepartmentId;
+            && categoryDepartmentId ==
+                selectedDepartmentId;
     }
 
     public static bool CanTransitionStatus(
@@ -54,38 +66,48 @@ public static class ServiceRequestRules
 
         return currentStatus switch
         {
-            ServiceRequestStatus.Submitted => nextStatus is
-                ServiceRequestStatus.UnderReview
-                or ServiceRequestStatus.Cancelled
-                or ServiceRequestStatus.Rejected,
+            ServiceRequestStatus.Submitted =>
+                nextStatus is
+                    ServiceRequestStatus.UnderReview
+                    or ServiceRequestStatus.Assigned
+                    or ServiceRequestStatus.Cancelled
+                    or ServiceRequestStatus.Rejected,
 
-            ServiceRequestStatus.UnderReview => nextStatus is
-                ServiceRequestStatus.Assigned
-                or ServiceRequestStatus.Cancelled
-                or ServiceRequestStatus.Rejected,
+            ServiceRequestStatus.UnderReview =>
+                nextStatus is
+                    ServiceRequestStatus.Assigned
+                    or ServiceRequestStatus.Cancelled
+                    or ServiceRequestStatus.Rejected,
 
-            ServiceRequestStatus.Assigned => nextStatus is
-                ServiceRequestStatus.Scheduled
-                or ServiceRequestStatus.InProgress
-                or ServiceRequestStatus.Cancelled,
+            ServiceRequestStatus.Assigned =>
+                nextStatus is
+                    ServiceRequestStatus.Scheduled
+                    or ServiceRequestStatus.InProgress
+                    or ServiceRequestStatus.Cancelled,
 
-            ServiceRequestStatus.Scheduled => nextStatus is
-                ServiceRequestStatus.InProgress
-                or ServiceRequestStatus.Cancelled,
+            ServiceRequestStatus.Scheduled =>
+                nextStatus is
+                    ServiceRequestStatus.InProgress
+                    or ServiceRequestStatus.Cancelled,
 
-            ServiceRequestStatus.InProgress => nextStatus is
-                ServiceRequestStatus.Resolved
-                or ServiceRequestStatus.Cancelled,
+            ServiceRequestStatus.InProgress =>
+                nextStatus is
+                    ServiceRequestStatus.Resolved
+                    or ServiceRequestStatus.Cancelled,
 
-            ServiceRequestStatus.Resolved => nextStatus is
-                ServiceRequestStatus.Closed
-                or ServiceRequestStatus.Reopened,
+            ServiceRequestStatus.Resolved =>
+                nextStatus is
+                    ServiceRequestStatus.Closed
+                    or ServiceRequestStatus.Reopened,
 
-            ServiceRequestStatus.Closed => nextStatus is
-                ServiceRequestStatus.Reopened,
+            ServiceRequestStatus.Closed =>
+                nextStatus ==
+                    ServiceRequestStatus.Reopened,
 
-            ServiceRequestStatus.Reopened => nextStatus is
-                ServiceRequestStatus.UnderReview,
+            ServiceRequestStatus.Reopened =>
+                nextStatus is
+                    ServiceRequestStatus.UnderReview
+                    or ServiceRequestStatus.Assigned,
 
             ServiceRequestStatus.Rejected => false,
 

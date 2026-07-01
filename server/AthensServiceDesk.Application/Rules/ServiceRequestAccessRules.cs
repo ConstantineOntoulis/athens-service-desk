@@ -6,7 +6,8 @@ namespace AthensServiceDesk.Application.Rules;
 
 public static class ServiceRequestAccessRules
 {
-    public static bool CanCreate(UserRole role)
+    public static bool CanCreate(
+        UserRole role)
     {
         return role == UserRole.Citizen;
     }
@@ -37,8 +38,17 @@ public static class ServiceRequestAccessRules
         ServiceRequestAccessScope accessScope,
         ServiceRequest serviceRequest)
     {
-        return accessScope.Role == UserRole.Citizen
+        return accessScope.Role ==
+                UserRole.Citizen
             && serviceRequest.CreatedByUserId ==
                 accessScope.UserId;
+    }
+
+    public static bool CanManageAssignments(
+        UserRole role)
+    {
+        return role is
+            UserRole.Manager
+            or UserRole.Admin;
     }
 }
