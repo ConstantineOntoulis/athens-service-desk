@@ -14,6 +14,10 @@ public static class DependencyInjection
             ServiceRequestService>();
 
         services.AddScoped<
+            IServiceRequestWorkflowService,
+            ServiceRequestWorkflowService>();
+
+        services.AddScoped<
             IServiceCatalogService,
             ServiceCatalogService>();
 
