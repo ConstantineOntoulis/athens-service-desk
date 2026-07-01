@@ -12,12 +12,21 @@ namespace AthensServiceDesk.Api.Controllers;
 [Route("api/service-requests")]
 public sealed class ServiceRequestsController : ControllerBase
 {
-    private readonly IServiceRequestService _serviceRequestService;
+    private readonly IServiceRequestService
+        _serviceRequestService;
+
+    private readonly IServiceRequestWorkflowService
+        _workflowService;
 
     public ServiceRequestsController(
-        IServiceRequestService serviceRequestService)
+        IServiceRequestService serviceRequestService,
+        IServiceRequestWorkflowService workflowService)
     {
-        _serviceRequestService = serviceRequestService;
+        _serviceRequestService =
+            serviceRequestService;
+
+        _workflowService =
+            workflowService;
     }
 
     [HttpGet]
@@ -113,6 +122,36 @@ public sealed class ServiceRequestsController : ControllerBase
     {
         ServiceRequestDetailsResponse response =
             await _serviceRequestService.UpdateAsync(
+                id,
+                request,
+                cancellationToken);
+
+        return Ok(response);
+    }
+
+    [Authorize(
+        Policy = AuthorizationPolicies.ManagerOrAdmin)]
+    [HttpPost("{id:int}/assign")]
+    [ProducesResponseType<ServiceRequestDetailsResponse>(
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(
+        StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        StatusCodes.Status409Conflict)]
+    public async Task<
+        ActionResult<ServiceRequestDetailsResponse>> Assign(
+        int id,
+        [FromBody] AssignServiceRequestRequest request,
+        CancellationToken cancellationToken)
+    {
+        ServiceRequestDetailsResponse response =
+            await _workflowService.AssignAsync(
                 id,
                 request,
                 cancellationToken);

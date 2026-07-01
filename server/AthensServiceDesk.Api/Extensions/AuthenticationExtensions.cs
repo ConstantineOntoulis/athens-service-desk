@@ -37,31 +37,41 @@ public static class AuthenticationExtensions
                     JwtOptions jwtOptions =
                         jwtOptionsAccessor.Value;
 
-                    bearerOptions.MapInboundClaims = false;
+                    bearerOptions.MapInboundClaims =
+                        false;
 
                     bearerOptions.TokenValidationParameters =
                         new TokenValidationParameters
                         {
                             ValidateIssuer = true,
-                            ValidIssuer = jwtOptions.Issuer,
+
+                            ValidIssuer =
+                                jwtOptions.Issuer,
 
                             ValidateAudience = true,
-                            ValidAudience = jwtOptions.Audience,
 
-                            ValidateIssuerSigningKey = true,
+                            ValidAudience =
+                                jwtOptions.Audience,
+
+                            ValidateIssuerSigningKey =
+                                true,
+
                             IssuerSigningKey =
                                 new SymmetricSecurityKey(
                                     Encoding.UTF8.GetBytes(
                                         jwtOptions.Key)),
 
                             ValidateLifetime = true,
+
                             RequireExpirationTime = true,
+
                             RequireSignedTokens = true,
 
                             ClockSkew =
                                 TimeSpan.FromSeconds(30),
 
                             NameClaimType = "name",
+
                             RoleClaimType = "role"
                         };
                 });
@@ -76,6 +86,17 @@ public static class AuthenticationExtensions
 
                     policy.RequireRole(
                         nameof(UserRole.Citizen));
+                });
+
+            options.AddPolicy(
+                AuthorizationPolicies.ManagerOrAdmin,
+                policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+
+                    policy.RequireRole(
+                        nameof(UserRole.Manager),
+                        nameof(UserRole.Admin));
                 });
         });
 
