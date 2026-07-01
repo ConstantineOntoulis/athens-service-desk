@@ -28,24 +28,58 @@ public static class DependencyInjection
             options.UseSqlServer(connectionString);
         });
 
-        services.AddOptions<JwtOptions>().Bind(
-            configuration.GetSection(JwtOptions.SectionName))
-            .Validate(options => !string.IsNullOrWhiteSpace(options.Issuer), "Jwt:Issuer is required.")
-            .Validate(options => !string.IsNullOrWhiteSpace(options.Audience), "Jwt:Audience is required.")
-            .Validate(options => !string.IsNullOrWhiteSpace(options.ClientId), "Jwt:ClientId is required.")
-            .Validate(options => Encoding.UTF8.GetByteCount(options.Key) >= 32, "Jwt: Key must contain at least 32 bytes.")
-            .Validate(options => options.AccessTokenMinutes is >= 5 and <= 1440, "Jwt:AccessTokenMinutes must be between 5 and 1440.")
+        services.AddOptions<JwtOptions>()
+            .Bind(
+                configuration.GetSection(
+                    JwtOptions.SectionName))
+            .Validate(
+                options =>
+                    !string.IsNullOrWhiteSpace(
+                        options.Issuer),
+                "Jwt:Issuer is required.")
+            .Validate(
+                options =>
+                    !string.IsNullOrWhiteSpace(
+                        options.Audience),
+                "Jwt:Audience is required.")
+            .Validate(
+                options =>
+                    !string.IsNullOrWhiteSpace(
+                        options.ClientId),
+                "Jwt:ClientId is required.")
+            .Validate(
+                options =>
+                    Encoding.UTF8.GetByteCount(
+                        options.Key) >= 32,
+                "Jwt:Key must contain at least 32 bytes.")
+            .Validate(
+                options =>
+                    options.AccessTokenMinutes
+                    is >= 5 and <= 1440,
+                "Jwt:AccessTokenMinutes must be between 5 and 1440.")
             .ValidateOnStart();
 
-        services.AddOptions<DemoUserOptions>().Bind(configuration.GetSection(DemoUserOptions.SectionName))
-            .Validate(options => !options.Enabled || options.DefaultPassword.Length >= 12, "The demo-user password must contain at least 12 characters when demo-user seeding is enabled.")
+        services.AddOptions<DemoUserOptions>()
+            .Bind(
+                configuration.GetSection(
+                    DemoUserOptions.SectionName))
+            .Validate(
+                options =>
+                    !options.Enabled
+                    || options.DefaultPassword.Length >= 12,
+                "The demo-user password must contain at least 12 characters when demo-user seeding is enabled.")
             .ValidateOnStart();
 
-        services.AddSingleton<TimeProvider>(TimeProvider.System);
+        services.AddSingleton<TimeProvider>(
+            TimeProvider.System);
 
-        services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<
+            IPasswordService,
+            PasswordService>();
 
-        services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<
+            IJwtTokenService,
+            JwtTokenService>();
 
         services.AddScoped<
             IDepartmentRepository,
@@ -60,12 +94,19 @@ public static class DependencyInjection
             ServiceRequestRepository>();
 
         services.AddScoped<
+            IRequestStatusHistoryRepository,
+            RequestStatusHistoryRepository>();
+
+        services.AddScoped<
             IUserRepository,
             UserRepository>();
 
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<
+            IUnitOfWork,
+            UnitOfWork>();
 
-        services.AddScoped<DatabaseInitializer>();
+        services.AddScoped<
+            DatabaseInitializer>();
 
         return services;
     }

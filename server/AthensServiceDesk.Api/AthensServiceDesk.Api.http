@@ -1,9 +1,10 @@
 @host = http://localhost:5011
-@requestId = 1
 
-# After logging in, copy the accessToken value from the response
-# and replace paste-citizen-token-here below.
+# Replace these values after sending the relevant requests below.
+@requestId = 1
 @accessToken = paste-citizen-token-here
+@managerAccessToken = paste-manager-token-here
+@staffUserId = 2
 
 
 ### OpenAPI document
@@ -16,6 +17,11 @@ Accept: application/json
 
 GET {{host}}/scalar/v1
 Accept: text/html
+
+
+###############################################################################
+# Authentication
+###############################################################################
 
 
 ### Login as citizen
@@ -66,7 +72,7 @@ Accept: application/json
 }
 
 
-### Login with an incorrect password
+### Login with an incorrect password - expected 401
 
 POST {{host}}/api/auth/login
 Content-Type: application/json
@@ -78,7 +84,7 @@ Accept: application/json
 }
 
 
-### Login with invalid DTO values
+### Login with invalid DTO values - expected 400
 
 POST {{host}}/api/auth/login
 Content-Type: application/json
@@ -103,6 +109,11 @@ GET {{host}}/api/auth/me
 Accept: application/json
 
 
+###############################################################################
+# Department and category lookups
+###############################################################################
+
+
 ### Get active departments
 
 GET {{host}}/api/departments
@@ -115,10 +126,15 @@ GET {{host}}/api/departments/2/service-categories
 Accept: application/json
 
 
-### Get service categories for a missing department - expected 404
+### Get categories for a missing department - expected 404
 
 GET {{host}}/api/departments/999999/service-categories
 Accept: application/json
+
+
+###############################################################################
+# Service-request queries
+###############################################################################
 
 
 ### List service requests for the authenticated user
@@ -142,7 +158,26 @@ Authorization: Bearer {{accessToken}}
 Accept: application/json
 
 
-### Create a valid service request
+### Get a service request by id
+
+GET {{host}}/api/service-requests/{{requestId}}
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+
+### Get a request that does not exist - expected 404
+
+GET {{host}}/api/service-requests/999999
+Authorization: Bearer {{accessToken}}
+Accept: application/json
+
+
+###############################################################################
+# Citizen service-request operations
+###############################################################################
+
+
+### Create a valid service request as citizen
 
 POST {{host}}/api/service-requests
 Authorization: Bearer {{accessToken}}
@@ -159,14 +194,7 @@ Accept: application/json
 }
 
 
-### Get a service request by id
-
-GET {{host}}/api/service-requests/{{requestId}}
-Authorization: Bearer {{accessToken}}
-Accept: application/json
-
-
-### Update an editable service request
+### Update an editable service request as its citizen owner
 
 PUT {{host}}/api/service-requests/{{requestId}}
 Authorization: Bearer {{accessToken}}
@@ -183,14 +211,7 @@ Accept: application/json
 }
 
 
-### Get a request that does not exist - expected 404
-
-GET {{host}}/api/service-requests/999999
-Authorization: Bearer {{accessToken}}
-Accept: application/json
-
-
-### Create an invalid request - expected 400
+### Create an invalid service request - expected 400
 
 POST {{host}}/api/service-requests
 Authorization: Bearer {{accessToken}}
@@ -207,7 +228,7 @@ Accept: application/json
 }
 
 
-### Create with a mismatched department and category - expected 409
+### Create with mismatched department and category - expected 409
 
 POST {{host}}/api/service-requests
 Authorization: Bearer {{accessToken}}
@@ -224,6 +245,55 @@ Accept: application/json
 }
 
 
+###############################################################################
+# Manager and administrator workflow operations
+###############################################################################
+
+
+### Assign a service request as manager
+
+POST {{host}}/api/service-requests/{{requestId}}/assign
+Authorization: Bearer {{managerAccessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "staffUserId": {{staffUserId}},
+  "note": "Assigned to the infrastructure staff member."
+}
+
+
+### Attempt assignment as citizen - expected 403
+
+POST {{host}}/api/service-requests/{{requestId}}/assign
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "staffUserId": {{staffUserId}},
+  "note": "A citizen should not be allowed to assign requests."
+}
+
+
+### Assign request to a missing staff user - expected 409
+
+POST {{host}}/api/service-requests/{{requestId}}/assign
+Authorization: Bearer {{managerAccessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "staffUserId": 999999,
+  "note": "This user does not exist."
+}
+
+
+###############################################################################
+# Authentication and authorization failure checks
+###############################################################################
+
+
 ### List service requests without authentication - expected 401
 
 GET {{host}}/api/service-requests
@@ -238,9 +308,21 @@ Accept: application/json
 
 {
   "title": "Anonymous service request",
-  "description": "This request should be rejected because it does not contain an access token.",
+  "description": "This request should be rejected because it does not contain a bearer token.",
   "location": "Athens",
   "departmentId": 2,
   "serviceCategoryId": 3,
   "priority": 2
+}
+
+
+### Assign service request without authentication - expected 401
+
+POST {{host}}/api/service-requests/{{requestId}}/assign
+Content-Type: application/json
+Accept: application/json
+
+{
+  "staffUserId": {{staffUserId}},
+  "note": "This request should be rejected because it has no bearer token."
 }
