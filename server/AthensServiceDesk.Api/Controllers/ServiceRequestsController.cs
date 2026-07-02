@@ -158,4 +158,64 @@ public sealed class ServiceRequestsController : ControllerBase
 
         return Ok(response);
     }
+
+    [Authorize(
+        Policy = AuthorizationPolicies.StaffOnly)]
+    [HttpPost("{id:int}/start")]
+    [ProducesResponseType<ServiceRequestDetailsResponse>(
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(
+        StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        StatusCodes.Status409Conflict)]
+    public async Task<
+        ActionResult<ServiceRequestDetailsResponse>> Start(
+        int id,
+        [FromBody] StartServiceRequestRequest request,
+        CancellationToken cancellationToken)
+    {
+        ServiceRequestDetailsResponse response =
+            await _workflowService.StartAsync(
+                id,
+                request,
+                cancellationToken);
+
+        return Ok(response);
+    }
+
+    [Authorize(
+        Policy = AuthorizationPolicies.StaffOnly)]
+    [HttpPost("{id:int}/resolve")]
+    [ProducesResponseType<ServiceRequestDetailsResponse>(
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(
+        StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(
+        StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        StatusCodes.Status409Conflict)]
+    public async Task<
+        ActionResult<ServiceRequestDetailsResponse>> Resolve(
+        int id,
+        [FromBody] ResolveServiceRequestRequest request,
+        CancellationToken cancellationToken)
+    {
+        ServiceRequestDetailsResponse response =
+            await _workflowService.ResolveAsync(
+                id,
+                request,
+                cancellationToken);
+
+        return Ok(response);
+    }
 }

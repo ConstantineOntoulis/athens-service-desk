@@ -79,18 +79,10 @@ public sealed class ServiceRequestWorkflowService
                 "Only managers and administrators can assign service requests.");
         }
 
-        ServiceRequest? serviceRequest =
-            await _serviceRequestRepository
-                .GetByIdForUpdateAsync(
-                    serviceRequestId,
-                    cancellationToken);
-
-        if (serviceRequest is null)
-        {
-            throw new NotFoundException(
-                "Service request",
-                serviceRequestId);
-        }
+        ServiceRequest serviceRequest =
+            await GetRequestForUpdateAsync(
+                serviceRequestId,
+                cancellationToken);
 
         if (!ServiceRequestRules.CanAssign(
                 serviceRequest.Status))
@@ -131,6 +123,216 @@ public sealed class ServiceRequestWorkflowService
         serviceRequest.UpdatedAt =
             now;
 
+        if (previousStatus ==
+            ServiceRequestStatus.Reopened)
+        {
+            serviceRequest.ResolvedAt = null;
+            serviceRequest.ClosedAt = null;
+        }
+
+        await AddStatusHistoryAsync(
+            serviceRequest,
+            previousStatus,
+            ServiceRequestStatus.Assigned,
+            accessScope.UserId,
+            request.Note,
+            now,
+            cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(
+            cancellationToken);
+
+        return await ReloadDetailsAsync(
+            serviceRequest.Id,
+            cancellationToken);
+    }
+
+    public async Task<ServiceRequestDetailsResponse>
+        StartAsync(
+            int serviceRequestId,
+            StartServiceRequestRequest request,
+            CancellationToken cancellationToken = default)
+    {
+        EnsureValidId(serviceRequestId);
+        ArgumentNullException.ThrowIfNull(request);
+
+        ServiceRequestAccessScope accessScope =
+            GetRequiredAccessScope();
+
+        if (accessScope.Role != UserRole.Staff)
+        {
+            throw new ForbiddenException(
+                "Only staff members can start work on service requests.");
+        }
+
+        ServiceRequest serviceRequest =
+            await GetRequestForUpdateAsync(
+                serviceRequestId,
+                cancellationToken);
+
+        if (!ServiceRequestAccessRules.CanWorkOn(
+                accessScope,
+                serviceRequest))
+        {
+            throw new ForbiddenException(
+                "You cannot start work on a service request " +
+                "that is not assigned to you.");
+        }
+
+        if (!ServiceRequestRules.CanStart(
+                serviceRequest.Status))
+        {
+            throw new BusinessRuleException(
+                $"A service request with status " +
+                $"'{serviceRequest.Status}' cannot be started.");
+        }
+
+        DateTimeOffset now =
+            _timeProvider.GetUtcNow();
+
+        ServiceRequestStatus previousStatus =
+            serviceRequest.Status;
+
+        serviceRequest.Status =
+            ServiceRequestStatus.InProgress;
+
+        serviceRequest.UpdatedAt =
+            now;
+
+        serviceRequest.ResolvedAt = null;
+        serviceRequest.ClosedAt = null;
+
+        await AddStatusHistoryAsync(
+            serviceRequest,
+            previousStatus,
+            ServiceRequestStatus.InProgress,
+            accessScope.UserId,
+            request.Note,
+            now,
+            cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(
+            cancellationToken);
+
+        return await ReloadDetailsAsync(
+            serviceRequest.Id,
+            cancellationToken);
+    }
+
+    public async Task<ServiceRequestDetailsResponse>
+        ResolveAsync(
+            int serviceRequestId,
+            ResolveServiceRequestRequest request,
+            CancellationToken cancellationToken = default)
+    {
+        EnsureValidId(serviceRequestId);
+        ArgumentNullException.ThrowIfNull(request);
+
+        if (string.IsNullOrWhiteSpace(
+                request.ResolutionNote))
+        {
+            throw new BusinessRuleException(
+                "A resolution note is required.");
+        }
+
+        ServiceRequestAccessScope accessScope =
+            GetRequiredAccessScope();
+
+        if (accessScope.Role != UserRole.Staff)
+        {
+            throw new ForbiddenException(
+                "Only staff members can resolve service requests.");
+        }
+
+        ServiceRequest serviceRequest =
+            await GetRequestForUpdateAsync(
+                serviceRequestId,
+                cancellationToken);
+
+        if (!ServiceRequestAccessRules.CanWorkOn(
+                accessScope,
+                serviceRequest))
+        {
+            throw new ForbiddenException(
+                "You cannot resolve a service request " +
+                "that is not assigned to you.");
+        }
+
+        if (!ServiceRequestRules.CanResolve(
+                serviceRequest.Status))
+        {
+            throw new BusinessRuleException(
+                $"A service request with status " +
+                $"'{serviceRequest.Status}' cannot be resolved.");
+        }
+
+        DateTimeOffset now =
+            _timeProvider.GetUtcNow();
+
+        ServiceRequestStatus previousStatus =
+            serviceRequest.Status;
+
+        serviceRequest.Status =
+            ServiceRequestStatus.Resolved;
+
+        serviceRequest.ResolvedAt =
+            now;
+
+        serviceRequest.UpdatedAt =
+            now;
+
+        await AddStatusHistoryAsync(
+            serviceRequest,
+            previousStatus,
+            ServiceRequestStatus.Resolved,
+            accessScope.UserId,
+            request.ResolutionNote,
+            now,
+            cancellationToken);
+
+        await _unitOfWork.SaveChangesAsync(
+            cancellationToken);
+
+        return await ReloadDetailsAsync(
+            serviceRequest.Id,
+            cancellationToken);
+    }
+
+    private async Task<ServiceRequest>
+        GetRequestForUpdateAsync(
+            int serviceRequestId,
+            CancellationToken cancellationToken)
+    {
+        ServiceRequest? serviceRequest =
+            await _serviceRequestRepository
+                .GetByIdForUpdateAsync(
+                    serviceRequestId,
+                    cancellationToken);
+
+        if (serviceRequest is null)
+        {
+            throw new NotFoundException(
+                "Service request",
+                serviceRequestId);
+        }
+
+        return serviceRequest;
+    }
+
+    private async Task AddStatusHistoryAsync(
+        ServiceRequest serviceRequest,
+        ServiceRequestStatus previousStatus,
+        ServiceRequestStatus newStatus,
+        int changedByUserId,
+        string? note,
+        DateTimeOffset changedAt,
+        CancellationToken cancellationToken)
+    {
+        string? normalizedNote =
+            string.IsNullOrWhiteSpace(note)
+                ? null
+                : note.Trim();
+
         var statusHistory =
             new RequestStatusHistory
             {
@@ -144,38 +346,38 @@ public sealed class ServiceRequestWorkflowService
                     previousStatus,
 
                 NewStatus =
-                    ServiceRequestStatus.Assigned,
+                    newStatus,
 
                 ChangedByUserId =
-                    accessScope.UserId,
+                    changedByUserId,
 
                 Note =
-                    string.IsNullOrWhiteSpace(
-                        request.Note)
-                        ? null
-                        : request.Note.Trim(),
+                    normalizedNote,
 
                 CreatedAt =
-                    now
+                    changedAt
             };
 
         await _statusHistoryRepository.AddAsync(
             statusHistory,
             cancellationToken);
+    }
 
-        await _unitOfWork.SaveChangesAsync(
-            cancellationToken);
-
+    private async Task<ServiceRequestDetailsResponse>
+        ReloadDetailsAsync(
+            int serviceRequestId,
+            CancellationToken cancellationToken)
+    {
         ServiceRequest? updatedServiceRequest =
             await _serviceRequestRepository.GetByIdAsync(
-                serviceRequest.Id,
+                serviceRequestId,
                 cancellationToken);
 
         if (updatedServiceRequest is null)
         {
             throw new NotFoundException(
                 "Updated service request",
-                serviceRequest.Id);
+                serviceRequestId);
         }
 
         return ServiceRequestMapper.ToDetailsResponse(

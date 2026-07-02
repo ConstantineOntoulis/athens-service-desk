@@ -51,4 +51,14 @@ public static class ServiceRequestAccessRules
             UserRole.Manager
             or UserRole.Admin;
     }
+
+    public static bool CanWorkOn(
+        ServiceRequestAccessScope accessScope,
+        ServiceRequest serviceRequest)
+    {
+        return accessScope.Role ==
+                UserRole.Staff
+            && serviceRequest.AssignedToUserId ==
+                accessScope.UserId;
+    }
 }

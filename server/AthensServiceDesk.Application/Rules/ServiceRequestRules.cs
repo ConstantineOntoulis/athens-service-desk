@@ -29,6 +29,14 @@ public static class ServiceRequestRules
             ServiceRequestStatus.Assigned);
     }
 
+    public static bool CanStart(
+        ServiceRequestStatus status)
+    {
+        return CanTransitionStatus(
+            status,
+            ServiceRequestStatus.InProgress);
+    }
+
     public static bool CanResolve(
         ServiceRequestStatus status)
     {

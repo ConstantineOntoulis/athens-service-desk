@@ -5,7 +5,6 @@ using AthensServiceDesk.Domain.Enums;
 using AthensServiceDesk.Infrastructure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -86,6 +85,16 @@ public static class AuthenticationExtensions
 
                     policy.RequireRole(
                         nameof(UserRole.Citizen));
+                });
+
+            options.AddPolicy(
+                AuthorizationPolicies.StaffOnly,
+                policy =>
+                {
+                    policy.RequireAuthenticatedUser();
+
+                    policy.RequireRole(
+                        nameof(UserRole.Staff));
                 });
 
             options.AddPolicy(
