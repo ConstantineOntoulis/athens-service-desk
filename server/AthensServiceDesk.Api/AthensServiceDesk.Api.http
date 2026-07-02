@@ -3,6 +3,7 @@
 # Replace these values after sending the relevant requests below.
 @requestId = 1
 @accessToken = paste-citizen-token-here
+@staffAccessToken = paste-staff-token-here
 @managerAccessToken = paste-manager-token-here
 @staffUserId = 2
 
@@ -325,4 +326,57 @@ Accept: application/json
 {
   "staffUserId": {{staffUserId}},
   "note": "This request should be rejected because it has no bearer token."
+}
+
+
+###############################################################################
+# Staff workflow operations
+###############################################################################
+
+
+### Start work on an assigned service request as staff
+
+POST {{host}}/api/service-requests/{{requestId}}/start
+Authorization: Bearer {{staffAccessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "note": "Inspection and repair work has started."
+}
+
+
+### Resolve an in-progress service request as staff
+
+POST {{host}}/api/service-requests/{{requestId}}/resolve
+Authorization: Bearer {{staffAccessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "resolutionNote": "The faulty lamp was replaced and the streetlight was tested successfully."
+}
+
+
+### Attempt to start work as citizen - expected 403
+
+POST {{host}}/api/service-requests/{{requestId}}/start
+Authorization: Bearer {{accessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "note": "A citizen should not be allowed to start staff work."
+}
+
+
+### Attempt to resolve before starting - expected 409
+
+POST {{host}}/api/service-requests/{{requestId}}/resolve
+Authorization: Bearer {{staffAccessToken}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "resolutionNote": "This should fail because the request is not in progress."
 }
